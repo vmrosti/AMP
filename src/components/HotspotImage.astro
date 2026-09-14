@@ -1,0 +1,126 @@
+---
+interface Hotspot {
+  x: number; // % zleva
+  y: number; // % shora
+  label: string;
+  detail: string;
+}
+interface Props {
+  image?: string;
+  alt: string;
+  hotspots: Hotspot[];
+}
+const { image, alt, hotspots } = Astro.props;
+---
+
+<div class="hotspot" data-hotspot-root>
+  <div class="hotspot__media media-placeholder">
+    {
+      image ? (
+        <img src={image} alt={alt} loading="lazy" />
+      ) : (
+        "FOTO MECHANISMU: doplní AMP"
+      )
+    }
+    {
+      hotspots.map((h, i) => (
+        <button
+          class="hotspot__point"
+          style={`left:${h.x}%; top:${h.y}%`}
+          aria-expanded="false"
+          aria-controls={`hotspot-detail-${i}`}
+          data-hotspot-trigger
+        >
+          <span class="sr-only">{h.label}</span>
+          <span aria-hidden="true">+</span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    hotspots.map((h, i) => (
+      <div class="hotspot__detail" id={`hotspot-detail-${i}`} hidden>
+        <strong>{h.label}</strong>
+        <p>{h.detail}</p>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .hotspot__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+  }
+
+  .hotspot__point {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: var(--color-white);
+    border: 2px solid var(--color-white);
+    font-size: 1.1rem;
+    line-height: 1;
+    box-shadow: 0 0 0 4px rgba(184, 72, 31, 0.25);
+    transition: transform var(--transition-fast);
+  }
+
+  .hotspot__point:hover,
+  .hotspot__point[aria-expanded="true"] {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .hotspot__detail {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+
+  .hotspot__detail p {
+    margin-top: var(--space-1);
+    color: var(--color-ink-soft);
+    font-size: var(--text-small);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+</style>
+
+<script>
+  // Klik/tap i klávesnice (Enter/Space fungují nativně na <button>).
+  document.querySelectorAll<HTMLElement>("[data-hotspot-root]").forEach((root) => {
+    const triggers = root.querySelectorAll<HTMLButtonElement>("[data-hotspot-trigger]");
+    triggers.forEach((btn) => {
+      const detail = document.getElementById(btn.getAttribute("aria-controls") ?? "");
+      btn.addEventListener("click", () => {
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        // Zavřít ostatní hotspoty v rámci stejné fotky
+        triggers.forEach((other) => {
+          if (other !== btn) {
+            other.setAttribute("aria-expanded", "false");
+            const otherDetail = document.getElementById(other.getAttribute("aria-controls") ?? "");
+            if (otherDetail) otherDetail.hidden = true;
+          }
+        });
+        btn.setAttribute("aria-expanded", String(!isOpen));
+        if (detail) detail.hidden = isOpen;
+      });
+    });
+  });
+</script>

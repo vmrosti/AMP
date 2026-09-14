@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import Button from "../components/Button.astro";
+---
+<BaseLayout
+  title="Stránka nenalezena — AMP-stroje"
+  description="Požadovaná stránka neexistuje."
+  noindex
+>
+  <Hero headline="Tuto stránku jsme nenašli" size="small" />
+  <Section>
+    <p>Zkontrolujte adresu, nebo pokračujte na jednu z hlavních sekcí webu:</p>
+    <ul class="not-found-links">
+      <li><Button href="/">Domů</Button></li>
+      <li><Button href="/reseni/" variant="secondary">Řešení</Button></li>
+      <li><Button href="/realizace/" variant="secondary">Realizace</Button></li>
+      <li><Button href="/kontakt/" variant="secondary">Kontakt</Button></li>
+    </ul>
+  </Section>
+</BaseLayout>
+
+<style>
+  .not-found-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+  .not-found-links li {
+    list-style: none;
+  }
+</style>

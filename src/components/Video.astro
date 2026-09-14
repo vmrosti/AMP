@@ -1,0 +1,81 @@
+---
+// Video s posterem, bez automatického zvuku, s lazy načtením zdroje až po vstupu do
+// viewportu (šetří data zejména na mobilu). Pokud src chybí, zobrazí se placeholder.
+interface Props {
+  src?: string;
+  poster?: string;
+  caption?: string;
+}
+const { src, poster, caption } = Astro.props;
+---
+
+{
+  src ? (
+    <figure class="video-block">
+      <video
+        class="video-block__el"
+        controls
+        preload="none"
+        poster={poster}
+        muted
+        playsinline
+        data-src={src}
+      >
+        <track kind="captions" />
+      </video>
+      {caption && <figcaption class="video-block__caption">{caption}</figcaption>}
+    </figure>
+  ) : (
+    <div class="media-placeholder video-block__placeholder">
+      VIDEO: doplní AMP{caption ? ` — ${caption}` : ""}
+    </div>
+  )
+}
+
+<style>
+  .video-block__el {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--color-ink);
+    border-radius: var(--radius-md);
+  }
+  .video-block__caption {
+    margin-top: var(--space-2);
+    font-size: var(--text-small);
+    color: var(--color-steel);
+  }
+  .video-block__placeholder {
+    aspect-ratio: 16 / 9;
+  }
+</style>
+
+<script>
+  // Lazy-load video source only once it's close to the viewport.
+  const videos = document.querySelectorAll<HTMLVideoElement>("video[data-src]");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const v = entry.target as HTMLVideoElement;
+            const src = v.dataset.src;
+            if (src) {
+              const source = document.createElement("source");
+              source.src = src;
+              v.appendChild(source);
+              v.load();
+            }
+            io.unobserve(v);
+          }
+        });
+      },
+      { rootMargin: "200px" }
+    );
+    videos.forEach((v) => io.observe(v));
+  }
+
+  // Konverzní event — jednou za video, ne opakovaně při každém přehrání/pauze.
+  videos.forEach((v) => {
+    v.addEventListener("play", () => window.trackEvent?.("video_play"), { once: true });
+  });
+</script>

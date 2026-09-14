@@ -1,0 +1,148 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import ServiceCard from "../components/ServiceCard.astro";
+import CaseStudyCard from "../components/CaseStudyCard.astro";
+import Process from "../components/Process.astro";
+import CTA from "../components/CTA.astro";
+import AutomationCheck from "../components/AutomationCheck.astro";
+import { services } from "../data/services.js";
+import { getPublished } from "../data/caseStudies.js";
+
+const publishedCaseStudies = getPublished();
+
+const pillars = [
+  {
+    title: "Jednoúčelové stroje",
+    body: "Navrhujeme a vyrábíme stroje a přípravky na míru konkrétní operaci — od jednoho pracoviště po celou linku.",
+    href: "/reseni/jednoucelove-stroje/",
+  },
+  {
+    title: "Automatizace a optimalizace",
+    body: "Nahrazujeme ruční operace, které zpomalují výrobu nebo jsou náchylné na chybu, a upravujeme stávající procesy tak, aby dávaly smysl.",
+    href: "/reseni/automatizace-vyroby/",
+  },
+  {
+    title: "Servis a modernizace",
+    body: "Udržujeme stroje v provozu a upravujeme starší zařízení tak, aby zvládlo dnešní nároky na výrobu.",
+    href: "/reseni/servis-a-modernizace/",
+  },
+];
+
+const processSteps = [
+  { title: "Poptávka", body: "Popíšete nám problém, ozveme se co nejdříve s reálným odhadem." },
+  { title: "Studie nebo konzultace", body: "Ověříme technické a ekonomické parametry řešení." },
+  { title: "Realizace", body: "Návrh, výroba, oživení přímo u vás." },
+  { title: "Servis", body: "Jsme dostupní i po předání stroje do provozu." },
+];
+---
+
+<BaseLayout
+  title="AMP-stroje — jednoúčelové stroje a automatizace výroby"
+  description="Navrhujeme a vyrábíme jednoúčelové stroje a automatizovaná pracoviště na míru. Řešíme konkrétní provozní problémy, ne obecná zadání."
+>
+  <Hero
+    headline="Nestavíme nejsložitější stroj. Stavíme ten, který má fungovat."
+    subheadline="Navrhujeme a vyrábíme jednoúčelové stroje a automatizovaná pracoviště pro výrobní provozy, které potřebují řešení, ne experiment."
+    ctaLabel="Popište nám výrobní problém"
+    visual
+  />
+
+  <Section eyebrow="Co děláme" title="Tři oblasti, jedna filozofie">
+    <div class="grid grid--3">
+      {pillars.map((p, i) => (
+        <div style={`--reveal-index:${i}`}>
+          <ServiceCard href={p.href} title={p.title} body={p.body} />
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  <Section
+    variant="alt"
+    eyebrow="Řešení"
+    title="Řešíme konkrétní provozní problémy"
+    subtitle="Ne obecná „automatizace“ — konkrétní operace, které dnes brzdí výrobu."
+  >
+    <div class="grid grid--3">
+      {services.map((s, i) => (
+        <div style={`--reveal-index:${i}`}>
+          <ServiceCard href={`/reseni/${s.slug}/`} title={s.title} body={s.short} />
+        </div>
+      ))}
+    </div>
+  </Section>
+
+  <Section eyebrow="Proces" title="Od poptávky po provoz" subtitle="Čtyři kroky, žádné zbytečné schvalovací kolo navíc.">
+    <Process steps={processSteps} />
+  </Section>
+
+  {publishedCaseStudies.length > 0 && (
+    <Section
+      variant="alt"
+      eyebrow="Realizace"
+      title="Co jsme postavili"
+      subtitle="Reálné stroje, reálné provozy."
+    >
+      <div class="grid grid--3">
+        {publishedCaseStudies.map((c) => (
+          <CaseStudyCard
+            href={`/realizace/${c.slug}/`}
+            title={c.title}
+            obor={c.industry}
+          />
+        ))}
+      </div>
+      <p class="home-realizace-more reveal">
+        <a href="/realizace/">Všechny realizace →</a>
+      </p>
+    </Section>
+  )}
+
+  <Section eyebrow="Proč AMP" title="Proč s námi">
+    <ul class="reasons">
+      <li class="reveal">Na projektu mluvíte přímo s technikem nebo majitelem, ne s obchodním zástupcem, který předává zadání dál.</li>
+      <li class="reveal" style="--reveal-index:1">Bereme i menší nebo netypické zakázky, které se větším dodavatelům nevyplatí.</li>
+      <li class="reveal" style="--reveal-index:2">Rozhodujeme rychle — bez vícekolových schvalování uvnitř firmy.</li>
+    </ul>
+  </Section>
+
+  <Section
+    variant="alt"
+    eyebrow="Automation Check"
+    title="Má váš proces potenciál pro automatizaci?"
+    subtitle="Šest krátkých otázek o vašem provozu — bez nutnosti cokoliv posílat dopředu."
+  >
+    <AutomationCheck />
+  </Section>
+
+  <CTA
+    title="Máte technický problém k vyřešení?"
+    subtitle="Popište nám, co potřebujete automatizovat nebo vyrobit — ozve se vám přímo Michal Holánek s reálným odhadem, ne obchodní frází."
+    ctaLabel="Proberme váš projekt"
+  />
+</BaseLayout>
+
+<style>
+  .home-realizace-more {
+    margin-top: var(--space-5);
+  }
+  .home-realizace-more a {
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+  }
+  .reasons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 48rem;
+  }
+  .reasons li {
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    font-size: var(--text-body-lg);
+    color: var(--color-ink-soft);
+  }
+</style>

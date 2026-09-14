@@ -1,0 +1,28 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import ServiceCard from "../../components/ServiceCard.astro";
+import CTA from "../../components/CTA.astro";
+import { services } from "../../data/services.js";
+---
+<BaseLayout
+  title="Řešení pro automatizaci výroby | AMP-stroje"
+  description="Automatizace výroby, jednoúčelové stroje, optimalizace procesů, studie proveditelnosti a servis — od AMP-stroje."
+>
+  <Hero headline="Řešení pro váš provoz" size="small" />
+  <Section>
+    <div class="grid grid--3">
+      {services.map((s, i) => (
+        <div style={`--reveal-index:${i}`}>
+          <ServiceCard href={`/reseni/${s.slug}/`} title={s.title} body={s.short} />
+        </div>
+      ))}
+    </div>
+  </Section>
+  <CTA
+    title="Nejste si jistí, které řešení potřebujete?"
+    subtitle="Popište nám provozní problém — navrhneme, co dává smysl řešit jako první."
+    ctaLabel="Proberme váš projekt"
+  />
+</BaseLayout>

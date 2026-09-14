@@ -1,0 +1,41 @@
+---
+interface Props {
+  label: string;
+  value: string;
+}
+const { label, value } = Astro.props;
+const isPlaceholder = value?.trim().startsWith("[DOPLNIT");
+---
+
+<div class="tech-card">
+  <p class="tech-card__label">{label}</p>
+  <p class:list={["tech-card__value", { "tech-card__value--placeholder": isPlaceholder }]}>
+    {value}
+  </p>
+</div>
+
+<style>
+  .tech-card {
+    padding: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+  }
+
+  .tech-card__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-steel);
+    margin-bottom: var(--space-2);
+  }
+
+  .tech-card__value {
+    font-size: var(--text-body);
+  }
+
+  .tech-card__value--placeholder {
+    color: var(--color-accent-dark);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+  }
+</style>

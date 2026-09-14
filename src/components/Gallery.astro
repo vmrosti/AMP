@@ -1,0 +1,53 @@
+---
+interface Image {
+  src: string;
+  alt: string;
+}
+interface Props {
+  images: Image[];
+  emptyLabel?: string;
+}
+const { images, emptyLabel = "FOTOGRAFIE: doplní AMP" } = Astro.props;
+---
+
+<div class="gallery">
+  {
+    images.length > 0
+      ? images.map((img) => (
+          <img
+            src={img.src}
+            alt={img.alt}
+            loading="lazy"
+            decoding="async"
+            class="gallery__img"
+          />
+        ))
+      : Array.from({ length: 4 }).map((_, i) => (
+          <div class="media-placeholder gallery__placeholder">
+            {i === 0 ? emptyLabel : ""}
+          </div>
+        ))
+  }
+</div>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 768px) {
+    .gallery {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .gallery__img,
+  .gallery__placeholder {
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+</style>
