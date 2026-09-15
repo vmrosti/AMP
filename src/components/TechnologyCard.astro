@@ -1,0 +1,60 @@
+---
+interface Props {
+  label: string;
+  value: string;
+}
+const { label, value } = Astro.props;
+const isPlaceholder = value?.trim().startsWith("[DOPLNIT");
+---
+
+<div class="tech-card">
+  <p class="tech-card__label">{label}</p>
+  <p class:list={["tech-card__value", { "tech-card__value--placeholder": isPlaceholder }]}>
+    {value}
+  </p>
+</div>
+
+<style>
+  .tech-card {
+    position: relative;
+    padding: var(--space-4);
+    border: 1px solid var(--color-steel-light-on-paper);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base),
+      border-color var(--transition-base);
+  }
+
+  .tech-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  }
+
+  .tech-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--color-accent);
+  }
+
+  .tech-card__label {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-steel-on-paper);
+    margin-bottom: var(--space-2);
+  }
+
+  .tech-card__value {
+    font-size: var(--text-body);
+  }
+
+  .tech-card__value--placeholder {
+    color: var(--color-accent-dark);
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+  }
+</style>
