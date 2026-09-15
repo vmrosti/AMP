@@ -1,0 +1,91 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import ServiceTiles from "../components/ServiceTiles.astro";
+import TechPartners from "../components/TechPartners.astro";
+import CaseStudyCard from "../components/CaseStudyCard.astro";
+import Process from "../components/Process.astro";
+import CTA from "../components/CTA.astro";
+import AutomationCheck from "../components/AutomationCheck.astro";
+import { getPublished } from "../data/caseStudies.js";
+
+const publishedCaseStudies = getPublished();
+
+const processSteps = [
+  { title: "Poptávka", body: "Popíšete nám problém, ozveme se co nejdříve s reálným odhadem." },
+  { title: "Studie nebo konzultace", body: "Ověříme technické a ekonomické parametry řešení." },
+  { title: "Realizace", body: "Návrh, výroba, oživení přímo u vás." },
+  { title: "Servis", body: "Jsme dostupní i po předání stroje do provozu." },
+];
+
+const technologyPartners = ["Festo", "SMC", "Balluff", "Euchner", "Sick", "Turck", "Weidmüller", "Rittal", "Siemens"];
+const customers = ["ITW", "Cecho", "TM-Technik", "Brano", "Contipro"];
+---
+
+<BaseLayout
+  title="AMP-stroje — zakázková výroba, automatizace a servis strojů"
+  description="Zakázková výroba, automatizace, servis, repase strojů a 3D tisk pod jednou střechou. Konstrukce, CNC obrábění a jednoúčelové stroje na míru výrobě."
+>
+  <Hero
+    headline="Engineering. Automation. Precision."
+    subheadline="Navrhujeme, vyrábíme a opravujeme stroje a automatizační zařízení pro provozy, které si nemohou dovolit odstávku."
+    ctaLabel="Poptat projekt"
+    secondaryLabel="Prohlédnout realizace"
+    visual
+  />
+
+  <Section eyebrow="Co umíme" title="Pět oblastí, jeden tým">
+    <ServiceTiles />
+  </Section>
+
+  <Section variant="soft" eyebrow="Proces" title="Od poptávky po provoz" subtitle="Čtyři kroky, žádné zbytečné schvalovací kolo navíc.">
+    <Process steps={processSteps} />
+  </Section>
+
+  {publishedCaseStudies.length > 0 && (
+    <Section
+      eyebrow="Realizace"
+      title="Co jsme postavili"
+      subtitle="Reálné stroje, reálné provozy."
+    >
+      <div class="grid grid--3">
+        {publishedCaseStudies.map((c) => (
+          <CaseStudyCard href={`/realizace/${c.slug}/`} title={c.title} obor={c.industry} />
+        ))}
+      </div>
+      <p class="home-realizace-more reveal">
+        <a href="/realizace/">Všechny realizace →</a>
+      </p>
+    </Section>
+  )}
+
+  <Section variant="soft" eyebrow="Technology partners" title="Komponenty, se kterými pracujeme">
+    <TechPartners title="Technology partners" names={technologyPartners} />
+  </Section>
+
+  <Section eyebrow="Trusted by" title="Pro koho jsme stavěli">
+    <TechPartners title="Zákazníci" names={customers} />
+  </Section>
+
+  <Section variant="alt" eyebrow="Automation Check" title="Má váš proces potenciál pro automatizaci?" subtitle="Šest krátkých otázek o vašem provozu — bez nutnosti cokoliv posílat dopředu.">
+    <AutomationCheck />
+  </Section>
+
+  <CTA
+    title="Have a project? Let's build it."
+    subtitle="Popište nám, co potřebujete vyrobit, automatizovat nebo opravit — ozve se vám přímo Michal Holánek s reálným odhadem, ne obchodní frází."
+    ctaLabel="Poptat projekt"
+  />
+</BaseLayout>
+
+<style>
+  .home-realizace-more {
+    margin-top: var(--space-5);
+  }
+  .home-realizace-more a {
+    color: var(--color-accent-bright);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+  }
+</style>

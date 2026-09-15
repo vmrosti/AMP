@@ -1,0 +1,249 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import GalleryLightbox from "../../components/GalleryLightbox.astro";
+import Video from "../../components/Video.astro";
+import BeforeAfter from "../../components/BeforeAfter.astro";
+import HotspotImage from "../../components/HotspotImage.astro";
+import TechnologyCard from "../../components/TechnologyCard.astro";
+import CaseStudyCard from "../../components/CaseStudyCard.astro";
+import CTA from "../../components/CTA.astro";
+import { getPublished, getRelatedProjects } from "../../data/caseStudies.js";
+import { getServiceBySlug } from "../../data/services.js";
+
+export function getStaticPaths() {
+  // Jen publikované realizace dostanou veřejnou stránku — draft/archived
+  // se negenerují vůbec (nejde je tedy náhodně zaindexovat).
+  return getPublished().map((cs) => ({
+    params: { slug: cs.slug },
+    props: { cs },
+  }));
+}
+
+const { cs } = Astro.props;
+const relatedService = cs.service ? getServiceBySlug(cs.service) : null;
+const relatedProjects = getRelatedProjects(cs);
+
+const tabs = [
+  { id: "foto", label: "Foto a mechanismus" },
+  { id: "technologie", label: "Technologie" },
+  { id: "video", label: "Video z provozu" },
+  { id: "parametry", label: "Parametry" },
+];
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Domů", item: new URL("/", Astro.site).toString() },
+    { "@type": "ListItem", position: 2, name: "Realizace", item: new URL("/realizace/", Astro.site).toString() },
+    { "@type": "ListItem", position: 3, name: cs.title, item: new URL(Astro.url.pathname, Astro.site).toString() },
+  ],
+};
+---
+
+<BaseLayout
+  title={cs.seoTitle || `${cs.title} — realizace | AMP-stroje`}
+  description={cs.seoDescription || cs.vysledek}
+  image={cs.mainImage || undefined}
+  imageAlt={cs.imageAlt || cs.title}
+  schema={[breadcrumbSchema]}
+>
+  <nav class="breadcrumbs container" aria-label="Drobečková navigace">
+    <a href="/">Domů</a> / <a href="/realizace/">Realizace</a> / <span>{cs.title}</span>
+  </nav>
+
+  <Hero headline={cs.title} subheadline={cs.industry} size="small" />
+
+  <Section eyebrow="Problém" title="Zadání a výchozí stav">
+    <div class="grid grid--2">
+      <div class="reveal">
+        <h3>Problém</h3>
+        <p>{cs.problem}</p>
+      </div>
+      <div class="reveal" style="--reveal-index:1">
+        <h3>Zadání</h3>
+        <p>{cs.zadani}</p>
+      </div>
+    </div>
+  </Section>
+
+  <Section variant="alt" eyebrow="Prohlédněte si realizaci" title="Jak jsme to vyřešili">
+    <p class="reveal cs-explorer__intro">{cs.reseni}</p>
+
+    <div class="cs-explorer" data-cs-explorer>
+      <div class="cs-explorer__tabs" role="tablist" aria-label="Detaily realizace">
+        {tabs.map((tab, i) => (
+          <button
+            type="button"
+            class="cs-explorer__tab"
+            role="tab"
+            id={`tab-${tab.id}`}
+            aria-controls={`panel-${tab.id}`}
+            aria-selected={i === 0 ? "true" : "false"}
+            data-tab-trigger={tab.id}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div class="cs-explorer__panel" role="tabpanel" id="panel-foto" aria-labelledby="tab-foto" data-tab-panel="foto">
+        <HotspotImage alt={cs.title} hotspots={[]} />
+      </div>
+
+      <div class="cs-explorer__panel" role="tabpanel" id="panel-technologie" aria-labelledby="tab-technologie" data-tab-panel="technologie" hidden>
+        <TechnologyCard label="Použité technologie" value={cs.technologies} />
+      </div>
+
+      <div class="cs-explorer__panel" role="tabpanel" id="panel-video" aria-labelledby="tab-video" data-tab-panel="video" hidden>
+        <Video src={cs.video} caption={cs.title} />
+      </div>
+
+      <div class="cs-explorer__panel" role="tabpanel" id="panel-parametry" aria-labelledby="tab-parametry" data-tab-panel="parametry" hidden>
+        <table class="params-table">
+          <tbody>
+            <tr><th>Takt</th><td>{cs.parametry.takt}</td></tr>
+            <tr><th>Rozměry stroje</th><td>{cs.parametry.rozmery}</td></tr>
+            <tr><th>Automatizace / obsluha</th><td>{cs.parametry.obsluha}</td></tr>
+            <tr><th>Rok realizace</th><td>{cs.parametry.rok}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </Section>
+
+  {cs.pred_po && (
+    <Section eyebrow="Před / po" title="Srovnání">
+      <BeforeAfter before={cs.pred_po.before} after={cs.pred_po.after} />
+    </Section>
+  )}
+
+  <Section eyebrow="Výsledek" title="Co se změnilo">
+    <p class="reveal">{cs.vysledek}</p>
+  </Section>
+
+  <Section variant="alt" eyebrow="Fotografie" title="Další fotodokumentace">
+    <GalleryLightbox
+      items={
+        cs.fotografie.length > 0
+          ? cs.fotografie.map((f) => ({ title: cs.title, category: cs.industry, image: f.src, alt: f.alt }))
+          : [{ title: cs.title, category: cs.industry }]
+      }
+    />
+  </Section>
+
+  {relatedService && (
+    <Section eyebrow="Související služba" title="Jaké řešení za tím stojí">
+      <a href={`/sluzby/${relatedService.slug}/`} class="related-service-link reveal">
+        {relatedService.title} <span aria-hidden="true">→</span>
+      </a>
+    </Section>
+  )}
+
+  {relatedProjects.length > 0 && (
+    <Section variant="alt" eyebrow="Podobné realizace" title="Mohlo by vás zajímat">
+      <div class="grid grid--3">
+        {relatedProjects.map((p) => (
+          <CaseStudyCard href={`/realizace/${p.slug}/`} title={p.title} obor={p.industry} />
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <CTA
+    title="Řešíte podobný problém?"
+    subtitle="Popište nám ho."
+    ctaLabel="Popište nám výrobní problém"
+  />
+</BaseLayout>
+
+<style>
+  .breadcrumbs {
+    padding-top: var(--space-4);
+    font-size: var(--text-small);
+    color: var(--color-steel);
+  }
+  .breadcrumbs a {
+    color: var(--color-steel);
+    text-decoration: none;
+  }
+  .cs-explorer__intro {
+    max-width: 60ch;
+    margin-bottom: var(--space-5);
+  }
+  .cs-explorer__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--space-3);
+  }
+  .cs-explorer__tab {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: var(--text-small);
+    color: var(--color-ink-soft);
+    transition: background-color var(--transition-fast), color var(--transition-fast),
+      border-color var(--transition-fast);
+  }
+  .cs-explorer__tab[aria-selected="true"] {
+    background: var(--color-ink);
+    color: var(--color-white);
+    border-color: var(--color-ink);
+  }
+  .params-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--text-mono);
+    background: var(--color-white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .params-table th,
+  .params-table td {
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .params-table th {
+    color: var(--color-steel);
+    font-weight: var(--weight-medium);
+    width: 40%;
+  }
+  .params-table tr:last-child th,
+  .params-table tr:last-child td {
+    border-bottom: none;
+  }
+  .related-service-link {
+    display: inline-flex;
+    gap: var(--space-2);
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    font-size: var(--text-body-lg);
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-cs-explorer]").forEach((root) => {
+    const triggers = root.querySelectorAll<HTMLButtonElement>("[data-tab-trigger]");
+    const panels = root.querySelectorAll<HTMLElement>("[data-tab-panel]");
+
+    triggers.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tabTrigger;
+        triggers.forEach((t) => t.setAttribute("aria-selected", String(t === btn)));
+        panels.forEach((p) => {
+          p.hidden = p.dataset.tabPanel !== target;
+        });
+      });
+    });
+  });
+</script>

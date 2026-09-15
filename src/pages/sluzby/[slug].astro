@@ -1,0 +1,181 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import TechnologyCard from "../../components/TechnologyCard.astro";
+import CaseStudyCard from "../../components/CaseStudyCard.astro";
+import FAQ from "../../components/FAQ.astro";
+import CTA from "../../components/CTA.astro";
+import AutomationCheck from "../../components/AutomationCheck.astro";
+import { services } from "../../data/services.js";
+import { getRelatedByService } from "../../data/caseStudies.js";
+
+export function getStaticPaths() {
+  return services.map((service) => ({
+    params: { slug: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props;
+
+const faqItems = [
+  {
+    question: "Jak dlouho trvá, než dostaneme první odpověď?",
+    answer:
+      "Ozveme se co nejdříve s reálným odhadem, ne obecnou nabídkou — obvykle v řádu pracovních dnů.",
+  },
+  {
+    question: "Musíme mít hotovou technickou specifikaci?",
+    answer:
+      "Ne. Stačí popsat problém a kontext provozu — specifikaci si upřesníme společně na místě nebo na fotkách/výkresech, které nám pošlete.",
+  },
+  {
+    question: "Berete i menší nebo netypické zakázky?",
+    answer:
+      "Ano — je to jedna z oblastí, kde má menší tým výhodu oproti velkým dodavatelům.",
+  },
+];
+
+const related = getRelatedByService(service.slug);
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Domů", item: new URL("/", Astro.site).toString() },
+    { "@type": "ListItem", position: 2, name: "Služby", item: new URL("/sluzby/", Astro.site).toString() },
+    { "@type": "ListItem", position: 3, name: service.title, item: new URL(Astro.url.pathname, Astro.site).toString() },
+  ],
+};
+
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: service.title,
+  description: service.seo.description,
+  provider: {
+    "@type": "LocalBusiness",
+    name: "AMP-stroje, s.r.o.",
+  },
+  areaServed: "CZ",
+};
+---
+
+<BaseLayout
+  title={service.seo.title}
+  description={service.seo.description}
+  schema={[breadcrumbSchema, serviceSchema]}
+>
+  <nav class="breadcrumbs container" aria-label="Drobečková navigace">
+    <a href="/">Domů</a> / <a href="/sluzby/">Služby</a> / <span>{service.title}</span>
+  </nav>
+
+  <Hero
+    headline={service.title}
+    subheadline={service.lead}
+    ctaLabel={service.cta}
+    size="small"
+  />
+
+  <Section eyebrow={`Služba ${service.number}`} title="Co konkrétně zahrnuje">
+    <ul class="capability-list">
+      {service.items.map((item, i) => (
+        <li class="capability-list__item reveal" style={`--reveal-index:${i % 6}`}>
+          <span class="capability-list__mark" aria-hidden="true" />
+          {item}
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  {service.technologie && (
+    <Section variant="alt" eyebrow="Technologie" title="Co při tom používáme">
+      <div class="grid grid--3">
+        <TechnologyCard label="Technologie" value={service.technologie} />
+      </div>
+    </Section>
+  )}
+
+  {related.length > 0 && (
+    <Section variant="soft" eyebrow="Realizace" title="Ukázka z praxe">
+      <div class="grid grid--2">
+        {related.map((c) => (
+          <CaseStudyCard href={`/realizace/${c.slug}/`} title={c.title} obor={c.industry} />
+        ))}
+      </div>
+    </Section>
+  )}
+
+  {service.slug === "automatizace" && (
+    <Section
+      variant="alt"
+      eyebrow="Automation Check"
+      title="Má váš proces potenciál pro automatizaci?"
+      subtitle="Šest krátkých otázek o vašem provozu — bez nutnosti cokoliv posílat dopředu."
+    >
+      <AutomationCheck />
+    </Section>
+  )}
+
+  <Section variant="alt" eyebrow="Časté otázky" title="Co se nás ptáte nejčastěji">
+    <FAQ items={faqItems} />
+  </Section>
+
+  <CTA title={service.cta} ctaLabel="Proberme váš projekt" />
+</BaseLayout>
+
+<style>
+  .breadcrumbs {
+    padding-top: var(--space-4);
+    font-size: var(--text-small);
+    color: var(--color-steel);
+  }
+  .breadcrumbs a {
+    color: var(--color-steel);
+    text-decoration: none;
+  }
+  .breadcrumbs a:hover {
+    text-decoration: underline;
+  }
+
+  .capability-list {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 46rem;
+  }
+
+  @media (min-width: 768px) {
+    .capability-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .capability-list__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-steel-light);
+    border-radius: var(--radius-md);
+    background: var(--color-void-soft);
+    color: var(--color-paper);
+    font-size: var(--text-body);
+    transition: border-color var(--transition-base), background-color var(--transition-base);
+  }
+
+  .capability-list__item:hover {
+    border-color: var(--color-accent);
+    background: var(--color-ink);
+  }
+
+  .capability-list__mark {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 7px;
+    background: var(--color-accent-bright);
+    border-radius: 1px;
+    transform: rotate(45deg);
+  }
+</style>
