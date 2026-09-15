@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+  names: string[];
+}
+const { title, names } = Astro.props;
+---
+
+<div class="partners">
+  <p class="partners__label font-mono-label">{title}</p>
+  <ul class="partners__list">
+    {names.map((name) => <li class="partners__item">{name}</li>)}
+  </ul>
+</div>
+
+<style>
+  .partners__label {
+    margin-bottom: var(--space-4);
+    text-transform: none;
+  }
+
+  .partners__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6) var(--space-7);
+  }
+
+  .partners__item {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-h3);
+    color: var(--color-steel-on-paper);
+    letter-spacing: -0.01em;
+    transition: color var(--transition-base);
+  }
+
+  .partners__item:hover {
+    color: var(--color-ink);
+  }
+
+  :global(.section--dark) .partners__item {
+    color: var(--color-steel);
+  }
+  :global(.section--dark) .partners__item:hover {
+    color: var(--color-paper);
+  }
+</style>

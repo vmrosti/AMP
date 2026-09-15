@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import CTA from "../components/CTA.astro";
+---
+<BaseLayout
+  title="O nás — AMP-stroje"
+  description="Menší tým, který staví stroje na míru konkrétnímu provoznímu problému. Přímý kontakt s technikem od zadání po servis."
+>
+  <Hero
+    headline="V jednoduchosti je síla"
+    subheadline="Nehledáme nejsložitější možné řešení. Hledáme to, které bude fungovat a dá se udržet."
+    size="small"
+  />
+
+  <Section>
+    <p class="lead reveal">
+      Jsme menší tým, který navrhuje a staví stroje pro konkrétní provozní problémy.
+      Neděláme katalogová řešení upravená na míru — stavíme rovnou na míru. To znamená
+      kratší cestu mezi vaším zadáním a fungujícím strojem, a taky to, že za výsledkem
+      stojí konkrétní člověk, se kterým jste od začátku mluvili.
+    </p>
+  </Section>
+
+  <Section variant="alt" eyebrow="Jak pracujeme" title="Tři principy">
+    <ul class="principles">
+      <li class="reveal">Neřešíme problém, který nemáme — pokud automatizace nedává smysl, řekneme to.</li>
+      <li class="reveal" style="--reveal-index:1">Stroj musí zvládnout obsluhovat člověk, který ho nenavrhoval.</li>
+      <li class="reveal" style="--reveal-index:2">Menší nebo netypická zakázka není důvod k odmítnutí.</li>
+    </ul>
+  </Section>
+
+  <Section eyebrow="Tým" title="Kdo na projektu pracuje">
+    <div class="media-placeholder team-placeholder">
+      TÝM: reálné fotky a jména členů týmu s rolí — doplní AMP
+    </div>
+  </Section>
+
+  <CTA title="Proberme váš projekt" ctaLabel="Popište nám výrobní problém" />
+</BaseLayout>
+
+<style>
+  .lead {
+    font-size: var(--text-body-lg);
+    max-width: 42rem;
+    color: var(--color-steel-on-paper);
+  }
+  .principles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 48rem;
+  }
+  .principles li {
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    font-size: var(--text-body-lg);
+    color: var(--color-ink-soft);
+  }
+  .team-placeholder {
+    min-height: 16rem;
+  }
+</style>
