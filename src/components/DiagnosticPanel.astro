@@ -1,0 +1,115 @@
+---
+interface Item {
+  label: string;
+  desc: string;
+}
+interface Props {
+  items: Item[];
+  accent?: string;
+  accentBright?: string;
+  accentTint?: string;
+}
+const { items, accent = "#0e7a1d", accentBright = "#00d319", accentTint = "14,122,29" } = Astro.props;
+---
+
+<div class="diag-panel" style={`--diag-accent:${accent}; --diag-accent-bright:${accentBright}; --diag-tint:${accentTint}`}>
+  <div class="diag-panel__header">
+    <span class="diag-panel__dot diag-panel__dot--active" aria-hidden="true"></span>
+    <span class="font-mono-label">STAV SYSTÉMU</span>
+  </div>
+  <div class="diag-panel__grid">
+    {items.map((item, i) => (
+      <div class="diag-panel__row reveal" style={`--reveal-index:${i}`}>
+        <span class="diag-panel__indicator" aria-hidden="true"></span>
+        <div>
+          <p class="diag-panel__label">{item.label}</p>
+          <p class="diag-panel__desc">{item.desc}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .diag-panel {
+    background: linear-gradient(155deg, var(--color-void) 0%, var(--color-void-soft) 100%);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+    overflow: hidden;
+  }
+
+  .diag-panel__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid rgba(245, 244, 241, 0.1);
+  }
+
+  .diag-panel__header .font-mono-label {
+    color: var(--color-steel);
+  }
+
+  .diag-panel__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-steel);
+  }
+
+  .diag-panel__dot--active {
+    background: var(--diag-accent-bright);
+    box-shadow: 0 0 8px rgba(var(--diag-tint), 0.8);
+    animation: dot-blink 2s ease-in-out infinite;
+  }
+
+  @keyframes dot-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .diag-panel__grid {
+    padding: var(--space-3);
+  }
+
+  .diag-panel__row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-base);
+  }
+
+  .diag-panel__row:hover {
+    background: rgba(var(--diag-tint), 0.1);
+  }
+
+  .diag-panel__indicator {
+    flex-shrink: 0;
+    margin-top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--diag-accent);
+    box-shadow: 0 0 0 3px rgba(var(--diag-tint), 0.25);
+  }
+
+  .diag-panel__label {
+    color: var(--color-paper);
+    font-weight: var(--weight-medium);
+    margin: 0 0 2px;
+  }
+
+  .diag-panel__desc {
+    color: var(--color-steel);
+    font-size: var(--text-small);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diag-panel__dot--active {
+      animation: none;
+    }
+  }
+</style>

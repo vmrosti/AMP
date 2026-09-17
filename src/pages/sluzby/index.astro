@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import ServiceTiles from "../../components/ServiceTiles.astro";
+import CTA from "../../components/CTA.astro";
+import { getBreadcrumbSchema } from "../../data/schema.js";
+
+const breadcrumbSchema = getBreadcrumbSchema(Astro.site, [
+  ["Domů", "/"],
+  ["Služby", "/sluzby/"],
+]);
+---
+<BaseLayout
+  title="Služby | AMP-stroje"
+  description="Zakázková výroba, automatizace, servis, repase strojů a 3D tisk — pět oblastí, jeden tým."
+  schema={breadcrumbSchema}
+>
+  <Hero
+    headline="Služby"
+    subheadline="Od 3D konstrukce po hotový svařovaný nebo CNC obráběný díl, od jednoúčelového stroje po jeho servis a repasi."
+    size="small"
+  />
+  <Section>
+    <ServiceTiles />
+  </Section>
+  <CTA
+    title="Nejste si jistí, které řešení potřebujete?"
+    subtitle="Popište nám provozní problém — navrhneme, co dává smysl řešit jako první."
+    ctaLabel="Proberme váš projekt"
+  />
+</BaseLayout>

@@ -1,0 +1,151 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import ContactForm from "../components/ContactForm.astro";
+import { getBreadcrumbSchema } from "../data/schema.js";
+
+const breadcrumbSchema = getBreadcrumbSchema(Astro.site, [
+  ["Domů", "/"],
+  ["Kontakt", "/kontakt/"],
+]);
+const contactPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Kontakt — AMP-stroje",
+};
+---
+<BaseLayout
+  title="Kontakt — AMP-stroje, Brno"
+  description="Popište nám váš provozní problém. Ozveme se přímo my, ne call centrum. Brno, Pražákova 1008/69."
+  schema={[breadcrumbSchema, contactPageSchema]}
+>
+  <Hero
+    headline="Pojďme probrat váš projekt"
+    subheadline="Napište, zavolejte, nebo vyplňte formulář — ozveme se přímo my, ne call centrum."
+    size="small"
+  />
+
+  <!-- Zachytí ?stav=ok/chyba po přesměrování z /api/kontakt.js — děje se to
+       jen když prohlížeč odešle formulář bez JavaScriptu jako běžný POST.
+       Řešeno na klientovi (ne server-side), aby stránka mohla zůstat
+       statická a nekomplikovala CSP mechanismus (viz scripts/generate-csp.mjs). -->
+  <div id="redirect-status" class="container"></div>
+
+  <Section variant="alt">
+    <div class="grid grid--2 contact-grid">
+      <div class="reveal">
+        <ContactForm />
+      </div>
+      <div class="reveal contact-info" style="--reveal-index:1">
+        <h2>Kontaktní osoba</h2>
+        <div class="contact-person">
+          <div class="media-placeholder contact-person__photo">FOTO: doplní AMP</div>
+          <div>
+            <p class="contact-person__name">Michal Holánek</p>
+            <p class="placeholder-note">[DOPLNIT — role, přímý telefon, e-mail]</p>
+          </div>
+        </div>
+
+        <h2>Adresa</h2>
+        <address>
+          AMP-stroje, s.r.o.<br />
+          Pražákova 1008/69<br />
+          Brno, 639 00<br />
+          IČO: 19091842
+        </address>
+
+        <h2>Přímý kontakt</h2>
+        <p>
+          <a href="tel:+420777911077" data-event="phone_click">+420 777 911 077</a><br />
+          <a href="mailto:info@amp-stroje.cz" data-event="email_click">info@amp-stroje.cz</a>
+        </p>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .contact-grid {
+    align-items: start;
+  }
+  .contact-info h2 {
+    font-size: var(--text-h3);
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-2);
+  }
+  .contact-info h2:first-child {
+    margin-top: 0;
+  }
+  .contact-info address {
+    font-style: normal;
+    color: var(--color-ink-soft);
+  }
+  .contact-info a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+  .placeholder-note {
+    font-family: var(--font-mono);
+    font-size: var(--text-small);
+    color: var(--color-accent-dark);
+  }
+  .contact-person {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .contact-person__photo {
+    width: 4rem;
+    height: 4rem;
+    min-height: 0;
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: var(--space-1);
+    border-radius: 50%;
+  }
+  .contact-person__name {
+    font-weight: var(--weight-semibold);
+    font-family: var(--font-display);
+    margin: 0;
+  }
+
+  .form-status {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    font-weight: var(--weight-medium);
+  }
+  .form-status--ok {
+    background: rgba(74, 138, 90, 0.12);
+    color: var(--color-success);
+  }
+  .form-status--error {
+    background: rgba(14, 122, 29, 0.06);
+    color: var(--color-accent-dark);
+  }
+  .form-status--error a {
+    color: inherit;
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const stav = params.get("stav");
+  const container = document.getElementById("redirect-status");
+
+  if (stav && container) {
+    const isOk = stav === "ok";
+    container.innerHTML = `
+      <p class="form-status ${isOk ? "form-status--ok" : "form-status--error"}" role="${isOk ? "status" : "alert"}">
+        ${
+          isOk
+            ? "Děkujeme, poptávku jsme přijali. Ozveme se vám co nejdříve."
+            : 'Odeslání se nezdařilo. Zkontrolujte prosím vyplněná pole níže, nebo nám mezitím napište přímo na <a href="mailto:info@amp-stroje.cz">info@amp-stroje.cz</a>.'
+        }
+      </p>
+    `;
+    // Vyčistit URL, ať zpráva nezůstane při obnovení stránky napořád viditelná.
+    window.history.replaceState({}, "", window.location.pathname);
+  }
+</script>

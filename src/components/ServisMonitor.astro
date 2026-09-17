@@ -1,0 +1,109 @@
+---
+// Animovaný "osciloskop" — plynule se kreslící vlnová křivka evokuje
+// průběžnou diagnostiku/monitoring stroje. Vlastní grafika, vizuální podpis
+// stránky Servis. Barva se přebírá podle accentu dané stránky.
+interface Props {
+  accent?: string;
+}
+const { accent = "#c9762a" } = Astro.props;
+---
+
+<div class="scope" style={`--scope-accent:${accent}`}>
+  <div class="scope__header">
+    <span class="scope__dot" aria-hidden="true"></span>
+    <span class="font-mono-label">PRŮBĚŽNÁ DIAGNOSTIKA</span>
+  </div>
+  <svg viewBox="0 0 600 160" class="scope__svg" preserveAspectRatio="none" aria-hidden="true">
+    <g opacity="0.15" stroke="var(--scope-accent)">
+      <line x1="0" y1="40" x2="600" y2="40" stroke-width="1" />
+      <line x1="0" y1="80" x2="600" y2="80" stroke-width="1" />
+      <line x1="0" y1="120" x2="600" y2="120" stroke-width="1" />
+    </g>
+    <path
+      class="scope__wave"
+      d="M0 80 L40 80 L55 30 L70 130 L85 80 L160 80 L175 50 L190 110 L205 80 L320 80 L335 20 L350 140 L365 80 L480 80 L495 45 L510 115 L525 80 L600 80"
+      stroke="var(--scope-accent)"
+      stroke-width="2.5"
+      fill="none"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+  </svg>
+  <div class="scope__stats">
+    <span>STATUS: <b>OK</b></span>
+    <span>MONITORING: <b>24/7</b></span>
+  </div>
+</div>
+
+<style>
+  .scope {
+    background: linear-gradient(155deg, var(--color-void) 0%, var(--color-void-soft) 100%);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+    padding: var(--space-5);
+  }
+
+  .scope__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .scope__header .font-mono-label {
+    color: var(--color-steel);
+  }
+
+  .scope__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--scope-accent);
+    box-shadow: 0 0 8px var(--scope-accent);
+    animation: scope-blink 1.6s ease-in-out infinite;
+  }
+
+  @keyframes scope-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .scope__svg {
+    width: 100%;
+    height: 10rem;
+    display: block;
+    overflow: visible;
+  }
+
+  .scope__wave {
+    filter: drop-shadow(0 0 4px var(--scope-accent));
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 1400;
+    animation: scope-draw 3.6s linear infinite;
+  }
+
+  @keyframes scope-draw {
+    to { stroke-dashoffset: -1400; }
+  }
+
+  .scope__stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-steel);
+  }
+
+  .scope__stats b {
+    color: var(--scope-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scope__wave,
+    .scope__dot {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

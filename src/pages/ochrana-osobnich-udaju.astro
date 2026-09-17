@@ -1,0 +1,113 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import { getBreadcrumbSchema } from "../data/schema.js";
+
+const breadcrumbSchema = getBreadcrumbSchema(Astro.site, [
+  ["Domů", "/"],
+  ["Ochrana osobních údajů", "/ochrana-osobnich-udaju/"],
+]);
+---
+<BaseLayout
+  title="Ochrana osobních údajů | AMP-stroje"
+  description="Informace o zpracování osobních údajů návštěvníků a klientů webu AMP-stroje, s.r.o."
+  schema={breadcrumbSchema}
+>
+  <Hero headline="Ochrana osobních údajů" size="small" />
+
+  <Section>
+    <div class="legal-content reveal">
+      <h2>Správce osobních údajů</h2>
+      <p>
+        Správcem osobních údajů je <strong>AMP-stroje, s.r.o.</strong>, se sídlem
+        Pražákova 1008/69, Brno, 639 00, IČO: 19091842 (dále jen „AMP“).
+      </p>
+      <p>
+        Kontakt ve věci ochrany osobních údajů:
+        <a href="mailto:info@amp-stroje.cz">info@amp-stroje.cz</a>,
+        <a href="tel:+420777911077">+420 777 911 077</a>.
+      </p>
+
+      <h2>Jaké údaje zpracováváme</h2>
+      <p>
+        Prostřednictvím kontaktního formuláře na tomto webu zpracováváme údaje, které
+        nám sami poskytnete: jméno, případně název firmy, e-mailovou adresu, případně
+        telefonní číslo, a obsah vaší zprávy/poptávky.
+      </p>
+
+      <h2>Účel a právní základ zpracování</h2>
+      <p>
+        Údaje zpracováváme za účelem vyřízení vaší poptávky a případné následné
+        obchodní komunikace, na základě vašeho souhlasu uděleného při odeslání
+        formuláře (čl. 6 odst. 1 písm. a) GDPR), případně za účelem jednání o
+        uzavření smlouvy (čl. 6 odst. 1 písm. b) GDPR).
+      </p>
+
+      <h2>Doba uchování údajů</h2>
+      <p>[DOPLNIT AMP — po jak dlouhou dobu se údaje z poptávek uchovávají]</p>
+
+      <h2>Předávání údajů třetím stranám</h2>
+      <p>
+        Údaje z formuláře jsou odesílány prostřednictvím e-mailové infrastruktury
+        použité pro provoz webu. [DOPLNIT AMP — pokud web/e-mail/hosting provozuje
+        externí dodavatel, uveďte zde konkrétně kterého, včetně případného
+        zpracovatele analytiky, pokud bude nasazena].
+      </p>
+      <p>
+        Údaje nepředáváme žádným třetím stranám za účelem marketingu a
+        nepoužíváme je k ničemu jinému než k vyřízení vaší poptávky.
+      </p>
+
+      <h2>Vaše práva</h2>
+      <p>
+        Máte právo na přístup ke svým osobním údajům, jejich opravu nebo výmaz,
+        omezení zpracování, přenositelnost údajů a právo kdykoliv odvolat souhlas
+        se zpracováním — v takovém případě napište na
+        <a href="mailto:info@amp-stroje.cz">info@amp-stroje.cz</a>. Máte také právo
+        podat stížnost u Úřadu pro ochranu osobních údajů (uoou.cz).
+      </p>
+
+      <h2>Cookies</h2>
+      <p>
+        Tento web k dnešnímu dni nepoužívá žádné analytické ani marketingové
+        cookies třetích stran. Kontaktní formulář odesílá data přímo na náš
+        server bez uložení jakéhokoliv sledovacího cookie do vašeho
+        prohlížeče. Jediné uložené místní údaje jsou vaše volba "Přijmout"
+        nebo "Odmítnout" v cookie liště — neslouží k žádnému sledování, jen
+        aby se vám lišta nezobrazovala opakovaně.
+      </p>
+      <p>
+        Pokud v budoucnu nasadíme analytický nástroj (např. pro měření
+        návštěvnosti), spustí se výhradně pro návštěvníky, kteří v liště
+        zvolí "Přijmout".
+      </p>
+
+      <p class="legal-updated">Poslední aktualizace: [DOPLNIT AMP — datum zveřejnění]</p>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .legal-content {
+    max-width: 42rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .legal-content h2 {
+    font-size: var(--text-h3);
+    margin-top: var(--space-5);
+  }
+  .legal-content h2:first-child {
+    margin-top: 0;
+  }
+  .legal-content p {
+    color: var(--color-steel-on-paper);
+  }
+  .legal-updated {
+    font-size: var(--text-small);
+    color: var(--color-steel-on-paper);
+    margin-top: var(--space-6);
+  }
+</style>

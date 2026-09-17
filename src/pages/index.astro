@@ -1,0 +1,116 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Section from "../components/Section.astro";
+import ServiceTiles from "../components/ServiceTiles.astro";
+import TechPartners from "../components/TechPartners.astro";
+import CaseStudyCard from "../components/CaseStudyCard.astro";
+import Process from "../components/Process.astro";
+import CTA from "../components/CTA.astro";
+import AutomationCheck from "../components/AutomationCheck.astro";
+import { getPublished } from "../data/caseStudies.js";
+import { getWebsiteSchema } from "../data/schema.js";
+
+const publishedCaseStudies = getPublished();
+
+const processSteps = [
+  { title: "Poptávka", body: "Popíšete nám problém, ozveme se co nejdříve s reálným odhadem.", icon: "inquiry" as const },
+  { title: "Studie nebo konzultace", body: "Ověříme technické a ekonomické parametry řešení.", icon: "study" as const },
+  { title: "Realizace", body: "Návrh, výroba, oživení přímo u vás.", icon: "build" as const },
+  { title: "Servis", body: "Jsme dostupní i po předání stroje do provozu.", icon: "support" as const },
+];
+
+// Cesta k logu se doplní automaticky, pokud soubor na dané cestě existuje —
+// jinak zůstane textový chip. Nahrajte soubory přesně pod těmito názvy do
+// public/images/partners/ resp. public/images/customers/ (svg nebo png).
+const technologyPartners = [
+  { name: "Festo", logoSlug: "festo" },
+  { name: "SMC", logoSlug: "smc" },
+  { name: "Balluff", logoSlug: "balluff" },
+  { name: "Euchner", logoSlug: "euchner" },
+  { name: "Sick", logoSlug: "sick" },
+  { name: "Turck", logoSlug: "turck" },
+  { name: "Weidmüller", logoSlug: "weidmuller" },
+  { name: "Rittal", logoSlug: "rittal" },
+  { name: "Siemens", logoSlug: "siemens" },
+];
+const customers = [
+  { name: "ITW", logoSlug: "itw" },
+  { name: "Cecho", logoSlug: "cecho" },
+  { name: "TM-Technik", logoSlug: "tm-technik" },
+  { name: "Brano", logoSlug: "brano" },
+  { name: "Contipro", logoSlug: "contipro" },
+];
+const websiteSchema = getWebsiteSchema(Astro.site);
+---
+
+<BaseLayout
+  title="AMP-stroje — jednoúčelové stroje a automatizace výroby"
+  description="Zakázková výroba, automatizace, servis, repase a 3D tisk pod jednou střechou. CNC obrábění a jednoúčelové stroje na míru vaší výrobě."
+  schema={[websiteSchema]}
+  preloadImage="/images/hero-workshop.webp"
+  preloadImageMobile="/images/hero-workshop-mobile.webp"
+>
+  <Hero
+    headline="Engineering. Automation. Precision."
+    subheadline="Navrhujeme, vyrábíme a opravujeme stroje a automatizační zařízení pro provozy, které si nemohou dovolit odstávku."
+    ctaLabel="Poptat projekt"
+    secondaryLabel="Prohlédnout realizace"
+    badge="Konzultace zdarma"
+    visual
+  />
+
+  <Section eyebrow="Co umíme" title="Pět oblastí, jeden tým">
+    <ServiceTiles />
+  </Section>
+
+  <Section variant="dark" eyebrow="Proces" title="Od poptávky po provoz" subtitle="Čtyři kroky, žádné zbytečné schvalovací kolo navíc.">
+    <Process steps={processSteps} />
+  </Section>
+
+  {publishedCaseStudies.length > 0 && (
+    <Section
+      eyebrow="Realizace"
+      title="Co jsme postavili"
+      subtitle="Reálné stroje, reálné provozy."
+    >
+      <div class="grid grid--3">
+        {publishedCaseStudies.map((c) => (
+          <CaseStudyCard href={`/realizace/${c.slug}/`} title={c.title} obor={c.industry} />
+        ))}
+      </div>
+      <p class="home-realizace-more reveal">
+        <a href="/realizace/">Všechny realizace →</a>
+      </p>
+    </Section>
+  )}
+
+  <Section variant="soft" eyebrow="Technology partners" title="Komponenty, se kterými pracujeme">
+    <TechPartners title="Technology partners" group="partners" names={technologyPartners} />
+  </Section>
+
+  <Section eyebrow="Trusted by" title="Pro koho jsme stavěli">
+    <TechPartners title="Zákazníci" group="customers" names={customers} />
+  </Section>
+
+  <Section variant="alt" eyebrow="Automation Check" title="Má váš proces potenciál pro automatizaci?" subtitle="Šest krátkých otázek o vašem provozu — bez nutnosti cokoliv posílat dopředu.">
+    <AutomationCheck />
+  </Section>
+
+  <CTA
+    title="Have a project? Let's build it."
+    subtitle="Popište nám, co potřebujete vyrobit, automatizovat nebo opravit — ozve se vám přímo Michal Holánek s reálným odhadem, ne obchodní frází."
+    ctaLabel="Poptat projekt"
+  />
+</BaseLayout>
+
+<style>
+  .home-realizace-more {
+    margin-top: var(--space-5);
+  }
+  .home-realizace-more a {
+    color: var(--color-accent-bright);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+  }
+</style>

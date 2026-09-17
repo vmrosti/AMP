@@ -1,0 +1,108 @@
+---
+// Animovaný technický výkres, který se sám "kreslí" (stroke-dasharray trik)
+// a přes něj přejíždí skenovací linka — evokuje CAD návrh -> CNC výrobu.
+// Vlastní vektorová grafika, vizuální podpis stránky Zakázková výroba.
+---
+
+<div class="blueprint-anim">
+  <svg viewBox="0 0 500 380" fill="none" class="blueprint-anim__svg" role="img" aria-label="Animovaný technický výkres obráběného dílu">
+    <!-- rastr pozadí -->
+    <g opacity="0.12" stroke="#3d94ea">
+      <line x1="0" y1="60" x2="500" y2="60" stroke-width="1" />
+      <line x1="0" y1="140" x2="500" y2="140" stroke-width="1" />
+      <line x1="0" y1="220" x2="500" y2="220" stroke-width="1" />
+      <line x1="0" y1="300" x2="500" y2="300" stroke-width="1" />
+      <line x1="100" y1="0" x2="100" y2="380" stroke-width="1" />
+      <line x1="250" y1="0" x2="250" y2="380" stroke-width="1" />
+      <line x1="400" y1="0" x2="400" y2="380" stroke-width="1" />
+    </g>
+
+    <!-- izometrický obrys obráběného bloku -->
+    <g class="blueprint-anim__draw" stroke="#3d94ea" stroke-width="2" fill="none" stroke-linejoin="round">
+      <path d="M150 260 L150 140 L250 90 L350 140 L350 260 L250 310 Z" />
+      <path d="M150 140 L250 190 L350 140" />
+      <path d="M250 190 L250 310" />
+    </g>
+
+    <!-- vnitřní vyvrtaný otvor -->
+    <ellipse cx="250" cy="220" rx="28" ry="16" stroke="#00d319" stroke-width="2" fill="none" class="blueprint-anim__draw blueprint-anim__draw--delay1" />
+
+    <!-- kótovací čáry a značky -->
+    <g stroke="#8b96a0" stroke-width="1" class="blueprint-anim__draw blueprint-anim__draw--delay2">
+      <line x1="150" y1="330" x2="350" y2="330" />
+      <line x1="150" y1="322" x2="150" y2="338" />
+      <line x1="350" y1="322" x2="350" y2="338" />
+    </g>
+    <text x="250" y="350" text-anchor="middle" class="blueprint-anim__dim">120 mm ±0.02</text>
+
+    <g stroke="#8b96a0" stroke-width="1" class="blueprint-anim__draw blueprint-anim__draw--delay2">
+      <line x1="400" y1="140" x2="400" y2="260" />
+      <line x1="392" y1="140" x2="408" y2="140" />
+      <line x1="392" y1="260" x2="408" y2="260" />
+    </g>
+    <text x="425" y="205" class="blueprint-anim__dim" transform="rotate(90 425 205)">64 mm</text>
+
+    <!-- skenovací linka -->
+    <rect x="0" y="0" width="500" height="3" fill="#00d319" class="blueprint-anim__scanline" opacity="0.8" />
+  </svg>
+</div>
+
+<style>
+  .blueprint-anim {
+    background: linear-gradient(155deg, var(--color-void) 0%, #0d1f33 100%);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-elevated);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .blueprint-anim__svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .blueprint-anim__dim {
+    fill: #8b96a0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .blueprint-anim__draw {
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: draw-line 2.6s ease-out forwards;
+  }
+  .blueprint-anim__draw--delay1 {
+    animation-delay: 1.4s;
+  }
+  .blueprint-anim__draw--delay2 {
+    animation-delay: 2s;
+  }
+
+  @keyframes draw-line {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .blueprint-anim__scanline {
+    animation: scan-move 3.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(0, 211, 25, 0.8));
+  }
+
+  @keyframes scan-move {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(377px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blueprint-anim__draw {
+      stroke-dashoffset: 0;
+      animation: none;
+    }
+    .blueprint-anim__scanline {
+      animation: none;
+      opacity: 0.3;
+    }
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+// Centralizovaná SEO hlavička — title, meta description, canonical, OpenGraph, schema.org.
+// LocalBusiness schema se PŘIDÁVÁ VŽDY (přes getLocalBusinessSchema), i když
+// stránka pošle vlastní schema navíc (Service/FAQPage/BreadcrumbList) — dřív
+// se `schema` prop choval jako náhrada, ne doplněk, a NAP údaje tak zmizely
+// ze stránek jako /kontakt/. Teď se vždy skládá dohromady.
+import { getLocalBusinessSchema } from "../data/schema.js";
+
+interface Props {
+  title: string;
+  description: string;
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  schema,
+  image = "/og-image.jpg",
+  imageAlt = "AMP-stroje — jednoúčelové stroje a automatizace výroby",
+  noindex = false,
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image, Astro.site);
+
+const localBusinessSchema = getLocalBusinessSchema(Astro.site);
+const extraSchema = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
+// Nepřidávat LocalBusiness dvakrát, pokud si ho stránka už sama zahrnula.
+const schemaList = extraSchema.some((s) => s["@type"] === "LocalBusiness")
+  ? extraSchema
+  : [localBusinessSchema, ...extraSchema];
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+{noindex ? (
+  <meta name="robots" content="noindex, nofollow" />
+) : (
+  <link rel="canonical" href={canonicalURL} />
+)}
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:locale" content="cs_CZ" />
+<meta property="og:site_name" content="AMP-stroje" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={imageAlt} />
+
+{schemaList.map((s) => (
+  <script type="application/ld+json" set:html={JSON.stringify(s)} />
+))}

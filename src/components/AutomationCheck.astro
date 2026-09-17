@@ -1,0 +1,450 @@
+---
+// „Má váš proces potenciál pro automatizaci?“ — orientační nástroj, ne kalkulačka ROI.
+// Čistý HTML/JS, žádný externí výpočet ani API. Výsledek je vždy kvalitativní
+// (nízký/střední/vysoký potenciál) s vysvětlením, nikdy konkrétní číslo návratnosti.
+const questions = [
+  {
+    name: "objem",
+    legend: "Kolik kusů měsíčně tato operace zpracovává?",
+    options: [
+      { value: "0", label: "Do 1 000 ks" },
+      { value: "1", label: "1 000–10 000 ks" },
+      { value: "2", label: "Nad 10 000 ks" },
+    ],
+  },
+  {
+    name: "smeny",
+    legend: "Na kolik směn provoz jede?",
+    options: [
+      { value: "0", label: "1 směna" },
+      { value: "1", label: "2 směny" },
+      { value: "2", label: "3 směny / nepřetržitě" },
+    ],
+  },
+  {
+    name: "lide",
+    legend: "Kolik lidí dnes operaci obsluhuje?",
+    options: [
+      { value: "0", label: "1 osoba" },
+      { value: "1", label: "2–3 osoby" },
+      { value: "2", label: "4 a více" },
+    ],
+  },
+  {
+    name: "opakovani",
+    legend: "Je operace opakující se, se stejným postupem pokaždé?",
+    options: [
+      { value: "2", label: "Ano" },
+      { value: "0", label: "Ne, hodně se liší kus od kusu" },
+    ],
+  },
+  {
+    name: "kontrola",
+    legend: "Je potřeba vizuální nebo rozměrová kontrola výsledku?",
+    options: [
+      { value: "1", label: "Ano" },
+      { value: "0", label: "Ne" },
+    ],
+  },
+  {
+    name: "stabilita",
+    legend: "Mění se často díl nebo postup (nová varianta, nový model)?",
+    options: [
+      { value: "0", label: "Často" },
+      { value: "2", label: "Zřídka, proces je stabilní" },
+    ],
+  },
+];
+---
+
+<div class="ac" data-automation-check>
+  <div class="ac__card">
+    <div class="ac__progress" aria-hidden="true">
+      <div class="ac__progress-bar" id="ac-progress-bar"></div>
+    </div>
+    <p class="ac__progress-label font-mono-label" id="ac-progress-label">0 / {questions.length} zodpovězeno</p>
+
+    <form class="ac__form" id="ac-form">
+      {questions.map((q, qi) => (
+        <fieldset class="ac__question">
+          <legend>
+            <span class="ac__question-number">{String(qi + 1).padStart(2, "0")}</span>
+            {q.legend}
+          </legend>
+          <div class="ac__options">
+            {q.options.map((opt, oi) => (
+              <label class="ac__pill">
+                <input type="radio" name={q.name} value={opt.value} required={oi === 0} />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+
+      <button type="submit" class="btn btn--primary ac__submit">Zjistit potenciál</button>
+    </form>
+  </div>
+
+  <div class="ac__result" id="ac-result" hidden role="status" aria-live="polite">
+    <div class="ac__result-top">
+      <svg class="ac__dial" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="52" class="ac__dial-track" />
+        <circle cx="60" cy="60" r="52" class="ac__dial-fill" id="ac-dial-fill" />
+      </svg>
+      <p class="ac__result-label" id="ac-result-label"></p>
+    </div>
+    <ul class="ac__result-reasons" id="ac-result-reasons"></ul>
+    <p class="ac__disclaimer">
+      Toto je orientační odhad na základě vašich odpovědí, ne přesný výpočet
+      návratnosti. Reálný potenciál a návratnost investice ukáže až studie
+      proveditelnosti na míru vašemu provozu.
+    </p>
+    <a href="/kontakt/?zprava=Chtěl%20bych%20probrat%20výsledek%20Automation%20Checku." class="btn btn--secondary">
+      Chcete výsledek probrat s AMP?
+    </a>
+  </div>
+</div>
+
+<style>
+  .ac {
+    max-width: 40rem;
+  }
+
+  .ac__card {
+    position: relative;
+    background: var(--color-white);
+    border: 1px solid var(--color-steel-light-on-paper);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+    padding: var(--space-6);
+    overflow: hidden;
+  }
+
+  .ac__card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-bright));
+  }
+
+  .ac__progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-paper-alt);
+    overflow: hidden;
+    margin-bottom: var(--space-2);
+  }
+
+  .ac__progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-bright));
+    border-radius: 999px;
+    transition: width var(--transition-slow);
+  }
+
+  .ac__progress-label {
+    margin-bottom: var(--space-5);
+  }
+
+  .ac__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .ac__question {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .ac__question legend {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-weight: var(--weight-medium);
+    font-size: var(--text-body-lg);
+    padding: 0;
+    color: var(--color-ink);
+  }
+
+  .ac__question-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--color-paper-alt);
+    color: var(--color-accent-dark);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .ac__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-left: calc(1.75rem + var(--space-3));
+  }
+
+  /* Skryjeme nativní radio kolečko, celý label je klikatelná pilulka */
+  .ac__pill {
+    position: relative;
+  }
+
+  .ac__pill input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .ac__pill span {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border: 1.5px solid var(--color-steel-light-on-paper);
+    border-radius: 999px;
+    font-size: var(--text-body);
+    color: var(--color-ink-soft);
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast),
+      color var(--transition-fast), transform var(--transition-fast);
+    user-select: none;
+  }
+
+  .ac__pill span:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .ac__pill input:checked ~ span {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-white);
+  }
+
+  .ac__pill input:focus-visible ~ span {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .ac__submit {
+    align-self: flex-start;
+    margin-top: var(--space-2);
+  }
+
+  /* Výsledek */
+  .ac__result {
+    margin-top: var(--space-5);
+    padding: var(--space-6);
+    background: var(--color-white);
+    border: 1px solid var(--color-steel-light-on-paper);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .ac__result-top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .ac__dial {
+    flex-shrink: 0;
+    width: 6.5rem;
+    height: 6.5rem;
+    transform: rotate(-90deg);
+  }
+
+  .ac__dial-track {
+    fill: none;
+    stroke: var(--color-paper-alt);
+    stroke-width: 10;
+  }
+
+  .ac__dial-fill {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 327; /* 2 * PI * 52 */
+    stroke-dashoffset: 327;
+    transition: stroke-dashoffset 900ms cubic-bezier(0.16, 1, 0.3, 1), stroke var(--transition-base);
+  }
+
+  .ac__dial-fill[data-level="nizky"] { stroke: var(--color-steel-on-paper); }
+  .ac__dial-fill[data-level="stredni"] { stroke: var(--color-accent-dark); }
+  .ac__dial-fill[data-level="vysoky"] { stroke: var(--color-success); }
+
+  .ac__result-label {
+    font-family: var(--font-display);
+    font-size: var(--text-h2);
+    font-weight: var(--weight-bold);
+    margin: 0;
+  }
+
+  .ac__result-label[data-level="nizky"] {
+    color: var(--color-steel-on-paper);
+  }
+  .ac__result-label[data-level="stredni"] {
+    color: var(--color-accent-dark);
+  }
+  .ac__result-label[data-level="vysoky"] {
+    color: var(--color-success);
+  }
+
+  .ac__result-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .ac__result-reasons li {
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--color-steel-light);
+    color: var(--color-ink-soft);
+    font-size: var(--text-small);
+  }
+
+  .ac__disclaimer {
+    font-size: var(--text-small);
+    color: var(--color-steel-on-paper);
+    margin-bottom: var(--space-4);
+  }
+</style>
+
+<script>
+  const form = document.getElementById("ac-form") as HTMLFormElement | null;
+  const progressBar = document.getElementById("ac-progress-bar");
+  const progressLabel = document.getElementById("ac-progress-label");
+  const totalQuestions = form?.querySelectorAll("fieldset").length || 6;
+
+  function updateProgress() {
+    if (!form) return;
+    const names = new Set(Array.from(form.querySelectorAll<HTMLInputElement>("input[type=radio]")).map((i) => i.name));
+    let answered = 0;
+    names.forEach((name) => {
+      if (form.querySelector<HTMLInputElement>(`input[name="${name}"]:checked`)) answered++;
+    });
+    if (progressBar) progressBar.style.width = `${(answered / totalQuestions) * 100}%`;
+    if (progressLabel) progressLabel.textContent = `${answered} / ${totalQuestions} zodpovězeno`;
+  }
+
+  let startTracked = false;
+  form?.addEventListener("change", () => {
+    updateProgress();
+    if (!startTracked) {
+      startTracked = true;
+      window.trackEvent?.("automation_check_start");
+    }
+  });
+
+  const result = document.getElementById("ac-result");
+  const label = document.getElementById("ac-result-label");
+  const reasonsEl = document.getElementById("ac-result-reasons");
+  const dialFill = document.getElementById("ac-dial-fill") as unknown as SVGCircleElement | null;
+  const DIAL_CIRCUMFERENCE = 327;
+  const MAX_SCORE = 11;
+
+  const reasonText: Record<string, { positive: string; negative: string }> = {
+    objem: {
+      positive: "Vyšší objem výroby zlepšuje návratnost investice do automatizace.",
+      negative: "Nízký objem znamená delší návratnost investice do stroje.",
+    },
+    smeny: {
+      positive: "Vícesměnný provoz využije stroj efektivněji a rychleji se vrátí.",
+      negative: "Jednosměnný provoz prodlužuje dobu návratnosti.",
+    },
+    lide: {
+      positive: "Operaci dnes obsluhuje víc lidí — automatizace uvolní kapacitu pro jinou práci.",
+      negative: "Operaci obsluhuje jen jeden člověk — úspora kapacity bude menší.",
+    },
+    opakovani: {
+      positive: "Opakující se postup je pro automatizaci ideální.",
+      negative: "Velká variabilita mezi kusy automatizaci komplikuje a prodražuje.",
+    },
+    kontrola: {
+      positive: "Potřeba kontroly jde často vyřešit společně s automatizací (kamerový systém).",
+      negative: "Bez nutnosti kontroly bude řešení jednodušší, ale to nesnižuje jeho hodnotu.",
+    },
+    stabilita: {
+      positive: "Stabilní proces bez častých změn je pro jednoúčelový stroj vhodný.",
+      negative: "Časté změny dílu nebo postupu snižují návratnost pevně nastaveného stroje.",
+    },
+  };
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    let score = 0;
+    const reasons: string[] = [];
+
+    for (const [name, info] of Object.entries(reasonText)) {
+      const raw = data.get(name);
+      if (raw === null) continue;
+      const value = Number(raw);
+      score += value;
+      reasons.push(value > 0 ? info.positive : info.negative);
+    }
+
+    let level: "nizky" | "stredni" | "vysoky";
+    let levelText: string;
+
+    if (score <= 4) {
+      level = "nizky";
+      levelText = "Nízký potenciál";
+    } else if (score <= 8) {
+      level = "stredni";
+      levelText = "Střední potenciál";
+    } else {
+      level = "vysoky";
+      levelText = "Vysoký potenciál";
+    }
+
+    if (dialFill) {
+      dialFill.dataset.level = level;
+      const ratio = Math.max(0, Math.min(1, score / MAX_SCORE));
+      // Nejdřív reset na plně nevyplněný stav, pak animovaný přechod na cíl.
+      dialFill.style.transition = "none";
+      dialFill.style.strokeDashoffset = String(DIAL_CIRCUMFERENCE);
+      void dialFill.getBoundingClientRect();
+      dialFill.style.transition = "";
+      requestAnimationFrame(() => {
+        dialFill.style.strokeDashoffset = String(DIAL_CIRCUMFERENCE * (1 - ratio));
+      });
+    }
+
+    if (label) {
+      label.textContent = levelText;
+      label.dataset.level = level;
+    }
+    if (reasonsEl) {
+      reasonsEl.innerHTML = "";
+      reasons.forEach((r) => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        reasonsEl.appendChild(li);
+      });
+    }
+    if (result) {
+      result.hidden = false;
+      result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      window.trackEvent?.("automation_check_complete", { level });
+    }
+  });
+</script>

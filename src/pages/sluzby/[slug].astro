@@ -1,0 +1,471 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import TechnologyCard from "../../components/TechnologyCard.astro";
+import CaseStudyCard from "../../components/CaseStudyCard.astro";
+import FAQ from "../../components/FAQ.astro";
+import CTA from "../../components/CTA.astro";
+import AutomationCheck from "../../components/AutomationCheck.astro";
+import BeforeAfter from "../../components/BeforeAfter.astro";
+import Picture from "../../components/Picture.astro";
+import AutomationDiagram from "../../components/AutomationDiagram.astro";
+import MaterialsShowcase from "../../components/MaterialsShowcase.astro";
+import DiagnosticPanel from "../../components/DiagnosticPanel.astro";
+import Video from "../../components/Video.astro";
+import BlueprintAnimation from "../../components/BlueprintAnimation.astro";
+import ServisMonitor from "../../components/ServisMonitor.astro";
+import { services } from "../../data/services.js";
+import { getRelatedByService } from "../../data/caseStudies.js";
+import { getBreadcrumbSchema } from "../../data/schema.js";
+import { getCapabilityIcon } from "../../data/capability-icons.js";
+import logoManifest from "../../data/logo-manifest.json";
+
+export function getStaticPaths() {
+  return services.map((service) => ({
+    params: { slug: service.slug },
+    props: { service },
+  }));
+}
+
+const { service } = Astro.props;
+
+// Každá služba dostává vlastní barevnou identitu — jinak by všech 5 stránek
+// splývalo do jedné, i kdyby měly jinak bohatý obsah.
+const accentMap: Record<string, { base: string; dark: string; bright: string; tint: string }> = {
+  "zakazkova-vyroba": { base: "#1a6fc4", dark: "#144f8c", bright: "#3d94ea", tint: "26,111,196" },
+  automatizace: { base: "#0e7a1d", dark: "#0a5a15", bright: "#00d319", tint: "14,122,29" },
+  servis: { base: "#c9762a", dark: "#9c5a1e", bright: "#f0913f", tint: "201,118,42" },
+  repase: { base: "#1a8a9a", dark: "#136570", bright: "#2fb8cc", tint: "26,138,154" },
+  "3d-tisk": { base: "#7a4ea8", dark: "#5c3a80", bright: "#9c6fd1", tint: "122,78,168" },
+};
+const accent = accentMap[service.slug] ?? accentMap.automatizace;
+
+// Video se použije, jen pokud soubor SKUTEČNĚ existuje v public/videos/
+// (zjištěno při buildu přes scripts/generate-logo-manifest.mjs — stejný
+// mechanismus a stejný důvod jako u log partnerů: Cloudflare prerendering
+// běží v izolovaném prostředí, kde běžná kontrola souboru na disk nefunguje).
+const videoSlugs: Record<string, string> = {
+  automatizace: "automatizace-stavba",
+  "3d-tisk": "3d-tisk-timelapse",
+};
+function resolveVideo(slug: string): string | undefined {
+  const wanted = videoSlugs[slug];
+  if (!wanted) return undefined;
+  const match = logoManifest.videos.find((f: string) => f.replace(/\.[^.]+$/, "") === wanted);
+  return match ? `/videos/${match}` : undefined;
+}
+const videoSrc = resolveVideo(service.slug);
+
+const faqItems = [
+  {
+    question: "Jak dlouho trvá, než dostaneme první odpověď?",
+    answer:
+      "Ozveme se co nejdříve s reálným odhadem, ne obecnou nabídkou — obvykle v řádu pracovních dnů.",
+  },
+  {
+    question: "Musíme mít hotovou technickou specifikaci?",
+    answer:
+      "Ne. Stačí popsat problém a kontext provozu — specifikaci si upřesníme společně na místě nebo na fotkách/výkresech, které nám pošlete.",
+  },
+  {
+    question: "Berete i menší nebo netypické zakázky?",
+    answer:
+      "Ano — je to jedna z oblastí, kde má menší tým výhodu oproti velkým dodavatelům.",
+  },
+];
+
+const related = getRelatedByService(service.slug);
+
+const kovoveMaterialy = [
+  { name: "Ocel", detail: "svařované i obráběné rámy a díly", color: "#5b6169" },
+  { name: "Nerezová ocel", detail: "MIG/TIG svařování, obrábění", color: "#8b96a0" },
+  { name: "Hliník", detail: "montované i svařované rámy, TIG", color: "#c7ccd1" },
+  { name: "Lehké kovy", detail: "CNC obrábění na míru", color: "#a8b4a0" },
+  { name: "Drahé kovy", detail: "přesné CNC obrábění", color: "#c9a94a" },
+];
+
+const tiskoveMaterialy = [
+  { name: "PLA", detail: "prototypy, běžné díly", color: "#0e7a1d" },
+  { name: "PETG", detail: "houževnatější, odolnější", color: "#1a8a9a" },
+  { name: "TPU", detail: "pružné, gumovité díly", color: "#7a4ea8" },
+  { name: "PC", detail: "vysoká pevnost a teplotní odolnost", color: "#5b6169" },
+  { name: "ABS", detail: "mechanicky odolné díly", color: "#c9622a" },
+  { name: "ASA", detail: "UV odolné, venkovní použití", color: "#a83a3a" },
+];
+
+const servisDiagnostika = [
+  { label: "Mechanické poruchy", desc: "opravy strojů a zařízení přímo na místě" },
+  { label: "Software a řízení", desc: "opravy a ladění softwaru a elektroinstalací" },
+  { label: "Scrap a takt", desc: "snižování zmetkovitosti a zefektivnění taktu" },
+  { label: "Přesné zásahy", desc: "magnetické vrtání a vykružování na místě" },
+];
+
+const serviceImages: Record<string, string> = {
+  "zakazkova-vyroba": "/images/services/zakazkova-vyroba.jpg",
+  automatizace: "/images/services/automatizace.jpg",
+  servis: "/images/services/servis.jpg",
+  repase: "/images/services/repase.jpg",
+  "3d-tisk": "/images/services/3d-tisk.jpg",
+};
+
+const breadcrumbSchema = getBreadcrumbSchema(Astro.site, [
+  ["Domů", "/"],
+  ["Služby", "/sluzby/"],
+  [service.title, Astro.url.pathname],
+]);
+
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: service.title,
+  description: service.seo.description,
+  provider: {
+    "@type": "LocalBusiness",
+    name: "AMP-stroje, s.r.o.",
+  },
+  areaServed: "CZ",
+};
+
+// FAQPage schema odpovídá přesně otázkám/odpovědím vypsaným níže na stránce
+// (viz `faqItems` výše) — žádný obsah navíc, co by na stránce nebyl vidět.
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+---
+
+<BaseLayout
+  title={service.seo.title}
+  description={service.seo.description}
+  schema={[breadcrumbSchema, serviceSchema, faqSchema]}
+>
+  <nav class="breadcrumbs container" aria-label="Drobečková navigace">
+    <a href="/">Domů</a> / <a href="/sluzby/">Služby</a> / <span>{service.title}</span>
+  </nav>
+
+  <Hero
+    headline={service.title}
+    subheadline={service.lead}
+    ctaLabel={service.cta}
+    size="small"
+    accentColor={accent.base}
+  />
+
+  <!-- Vizuální podpis stránky — u každé služby úplně jiný, hned pod hero,
+       než se dostaneme k výčtu kompetencí. Tohle je první "wow" moment. -->
+  {service.slug === "automatizace" && (
+    <Section variant="dark" eyebrow="Princip" title="Jak jednoúčelový stroj řídí proces" subtitle="Senzor rozpozná stav, řídicí jednotka rozhodne, akční člen provede pohyb — v nepřetržité smyčce.">
+      <AutomationDiagram />
+    </Section>
+  )}
+
+  {service.slug === "automatizace" && (
+    <Section variant="soft" eyebrow="Ve zrychleném čase" title="Stavba stroje krok za krokem">
+      <Video src={videoSrc} caption="Zrychlená stavba jednoúčelového stroje" />
+    </Section>
+  )}
+
+  {service.slug === "zakazkova-vyroba" && (
+    <Section variant="dark" eyebrow="Od návrhu k dílu" title="Z 3D modelu na CNC stroj" subtitle="Konstrukční data se přímo promítnou do výroby — bez ztráty přesnosti mezi kroky.">
+      <BlueprintAnimation />
+    </Section>
+  )}
+
+  {service.slug === "3d-tisk" && (
+    <Section variant="soft" eyebrow="Prusa XL / Core One" title="Jak vzniká vytištěný díl">
+      <Video src={videoSrc} caption="Timelapse tisku dílu" />
+    </Section>
+  )}
+
+  {service.slug === "servis" && (
+    <Section variant="dark" eyebrow="Na místě i na dálku" title="Neustálý přehled o stavu stroje" subtitle="Diagnostika, oprava, ověření — v tomto pořadí, bez zbytečných oklik.">
+      <ServisMonitor accent={accent.base} />
+    </Section>
+  )}
+
+  {service.slug === "repase" && (
+    <Section variant="dark" eyebrow="Před a po" title="Jak vypadá typická repase" subtitle="Ilustrační příklad rozsahu repase — od opotřebeného dílu po funkční, znovu nasazený mechanismus.">
+      <BeforeAfter before="/images/realizace/retrofit-pred.jpg" after="/images/realizace/retrofit-po.jpg" />
+    </Section>
+
+  )}
+
+  <Section
+    eyebrow={`Služba ${service.number}`}
+    title="Co konkrétně zahrnuje"
+    class="capability-section"
+    style={`--accent: ${accent.base}; --accent-dark: ${accent.dark}; --accent-bright: ${accent.bright}; --accent-tint: ${accent.tint}`}
+  >
+    <div class="capability-layout">
+      <ol class="cap-list">
+        {service.items.map((item, i) => (
+          <li class="cap-row reveal" style={`--reveal-index:${i % 6}`}>
+            <span class="cap-row__num">{String(i + 1).padStart(2, "0")}</span>
+            <span class="cap-row__icon" set:html={`<svg viewBox="0 0 24 24" fill="none">${getCapabilityIcon(item)}</svg>`} />
+            <span class="cap-row__text">{item}</span>
+            <svg class="cap-row__arrow" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M6 16 16 6M16 6H8M16 6v8" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </li>
+        ))}
+      </ol>
+      {serviceImages[service.slug] && (
+        <div class="capability-photo-frame reveal">
+          <Picture
+            src={serviceImages[service.slug]}
+            alt={`Ukázka práce — ${service.title}`}
+            class="capability-photo"
+            width={1200}
+            height={670}
+          />
+          <span class="capability-photo-frame__corner capability-photo-frame__corner--tl" aria-hidden="true"></span>
+          <span class="capability-photo-frame__corner capability-photo-frame__corner--br" aria-hidden="true"></span>
+          <span class="capability-photo-frame__tag font-mono-label">Služba {service.number}</span>
+        </div>
+      )}
+    </div>
+  </Section>
+
+  {service.slug === "zakazkova-vyroba" && (
+    <Section variant="soft" eyebrow="Materiály" title="Se kterými materiály pracujeme">
+      <MaterialsShowcase materials={kovoveMaterialy} />
+    </Section>
+  )}
+
+  {service.slug === "3d-tisk" && (
+    <Section variant="soft" eyebrow="Materiály" title="Tiskové materiály na výběr">
+      <MaterialsShowcase materials={tiskoveMaterialy} />
+    </Section>
+  )}
+
+  {service.slug === "servis" && (
+    <Section variant="soft" eyebrow="Rozsah zásahu" title="Na co se servis nejčastěji zaměřuje">
+      <DiagnosticPanel items={servisDiagnostika} accent={accent.base} accentBright={accent.bright} accentTint={accent.tint} />
+    </Section>
+  )}
+
+  {service.technologie && (
+    <Section variant="alt" eyebrow="Technologie" title="Co při tom používáme">
+      <div class="grid grid--3">
+        <TechnologyCard label="Technologie" value={service.technologie} />
+      </div>
+    </Section>
+  )}
+
+  {related.length > 0 && (
+    <Section variant="soft" eyebrow="Realizace" title="Ukázka z praxe">
+      <div class="grid grid--2">
+        {related.map((c) => (
+          <CaseStudyCard href={`/realizace/${c.slug}/`} title={c.title} obor={c.industry} />
+        ))}
+      </div>
+    </Section>
+  )}
+
+  {service.slug === "automatizace" && (
+    <Section
+      variant="alt"
+      eyebrow="Automation Check"
+      title="Má váš proces potenciál pro automatizaci?"
+      subtitle="Šest krátkých otázek o vašem provozu — bez nutnosti cokoliv posílat dopředu."
+    >
+      <AutomationCheck />
+    </Section>
+  )}
+
+  <Section variant="alt" eyebrow="Časté otázky" title="Co se nás ptáte nejčastěji">
+    <FAQ items={faqItems} />
+  </Section>
+
+  <CTA title={service.cta} ctaLabel="Proberme váš projekt" />
+</BaseLayout>
+
+<style>
+  .breadcrumbs {
+    padding-top: var(--space-4);
+    font-size: var(--text-small);
+    color: var(--color-steel-on-paper);
+  }
+  .breadcrumbs a {
+    color: var(--color-steel-on-paper);
+    text-decoration: none;
+  }
+  .breadcrumbs a:hover {
+    text-decoration: underline;
+  }
+
+  .capability-section {
+    position: relative;
+  }
+
+  .capability-layout {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  @media (min-width: 1024px) {
+    .capability-layout {
+      grid-template-columns: 1.3fr 1fr;
+      align-items: start;
+    }
+  }
+
+  :global(.capability-section .section__eyebrow) {
+    color: var(--accent-dark);
+  }
+
+  /* --- Fotka v ozdobném rámečku s rohovými značkami (jako v Hero) --- */
+  .capability-photo-frame {
+    position: relative;
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(20, 22, 26, 0.08);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  :global(.capability-photo) {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    display: block;
+  }
+
+  .capability-photo-frame__corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+  }
+  .capability-photo-frame__corner--tl {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+  }
+  .capability-photo-frame__corner--br {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+  }
+  .capability-photo-frame__tag {
+    position: absolute;
+    bottom: var(--space-4);
+    left: var(--space-4);
+    padding: 4px 10px;
+    background: rgba(10, 11, 13, 0.75);
+    color: var(--accent-bright);
+    border-radius: var(--radius-sm);
+    backdrop-filter: blur(4px);
+  }
+
+  /* --- Kompetence: plné řádky s ikonou, číslem a šipkou, které při hoveru
+     "vyjede" doprava a podbarví se tónem barvy dané služby. --- */
+  .cap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+
+  .cap-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-white);
+    overflow: hidden;
+    transition: background-color var(--transition-base);
+  }
+
+  .cap-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(var(--accent-tint), 0.14), transparent 60%);
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+  }
+
+  .cap-row:hover::before {
+    transform: translateX(0);
+  }
+
+  .cap-row:hover {
+    background: rgba(var(--accent-tint), 0.04);
+  }
+
+  .cap-row__num {
+    position: relative;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-steel-on-paper);
+    width: 1.5rem;
+  }
+
+  .cap-row__icon {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: linear-gradient(150deg, var(--accent), var(--accent-dark));
+    color: var(--color-white);
+    box-shadow: 0 4px 12px rgba(var(--accent-tint), 0.35);
+    transition: transform var(--transition-base);
+  }
+
+  .cap-row:hover .cap-row__icon {
+    transform: scale(1.08) rotate(-4deg);
+  }
+
+  .cap-row__icon svg,
+  .cap-row__icon :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cap-row__text {
+    position: relative;
+    flex: 1;
+    font-size: var(--text-body);
+    color: var(--color-ink);
+  }
+
+  .cap-row__arrow {
+    position: relative;
+    flex-shrink: 0;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity var(--transition-base), transform var(--transition-base);
+  }
+
+  .cap-row:hover .cap-row__arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+</style>

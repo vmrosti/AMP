@@ -1,0 +1,197 @@
+---
+// Nekonečně se posouvající pás ("logo marquee") — seznam duplikujeme 2×, aby
+// smyčka animace byla neviditelná. Zastaví se při hoveru, respektuje
+// prefers-reduced-motion (statický řádek místo pohybu).
+//
+// DŮLEŽITÉ: logo se zobrazí, jen pokud soubor SKUTEČNĚ existuje v public/
+// (ověřeno tady při buildu) — jinak zůstane textový chip. Tohle brání
+// rozbité ikonce obrázku, když je v datech cesta k logu, které ještě
+// nebylo nahráno (přesně to se stalo předtím).
+import logoManifest from "../data/logo-manifest.json";
+
+interface Partner {
+  name: string;
+  logoSlug?: string;
+}
+interface Props {
+  title: string;
+  /** Skupina rozhoduje, ve které složce (`public/images/<group>/`) se logo hledá. */
+  group: "partners" | "customers";
+  names: (string | Partner)[];
+}
+const { title, group, names } = Astro.props;
+
+// Logo se zobrazí, jen pokud soubor SKUTEČNĚ existuje v public/images/<group>/
+// (zjištěno při buildu, viz scripts/generate-logo-manifest.mjs — Cloudflare
+// prerendering běží v izolovaném prostředí bez přístupu k reálným souborům,
+// proto se to nedá zjistit "naživo" tady). Přípona (.svg/.png/...) se hledá
+// automaticky — nemusí se řešit ručně, který formát pro kterou firmu máme.
+function resolveLogo(slug?: string): string | undefined {
+  if (!slug) return undefined;
+  const files: string[] = logoManifest[group] ?? [];
+  const match = files.find((f) => f.replace(/\.[^.]+$/, "") === slug);
+  return match ? `/images/${group}/${match}` : undefined;
+}
+
+const partners: (Partner & { resolvedLogo?: string })[] = names.map((n) => {
+  const p: Partner = typeof n === "string" ? { name: n, logoSlug: n.toLowerCase() } : n;
+  return { ...p, resolvedLogo: resolveLogo(p.logoSlug) };
+});
+const looped = [...partners, ...partners];
+---
+
+<div class="partners">
+  <p class="partners__label font-mono-label">{title}</p>
+  <div class="partners__viewport">
+    <div class="partners__track">
+      {looped.map((p, i) => (
+        <div
+          class="partners__chip"
+          data-tooltip={p.resolvedLogo ? p.name : undefined}
+          aria-hidden={i >= partners.length ? "true" : undefined}
+        >
+          {p.resolvedLogo ? (
+            <img src={p.resolvedLogo} alt={p.name} loading="lazy" />
+          ) : (
+            <span class="partners__name">{p.name}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .partners__label {
+    margin-bottom: var(--space-5);
+  }
+
+  .partners__viewport {
+    position: relative;
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+
+  .partners__track {
+    display: flex;
+    gap: var(--space-4);
+    width: max-content;
+    animation: marquee 28s linear infinite;
+  }
+
+  .partners__viewport:hover .partners__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partners__track {
+      animation: none;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+  }
+
+  .partners__chip {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 12rem;
+    height: 7rem;
+    padding: var(--space-4);
+    border: 1px solid var(--color-steel-light-on-paper);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition-base), box-shadow var(--transition-base),
+      border-color var(--transition-base);
+  }
+
+  /* Popisek se jménem firmy — jen u chipů, které mají jen logo (bez textu) */
+  .partners__chip[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: var(--color-ink);
+    color: var(--color-white);
+    font-size: var(--text-small);
+    font-weight: var(--weight-medium);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    z-index: 5;
+  }
+
+  .partners__chip[data-tooltip]::before {
+    content: "";
+    position: absolute;
+    bottom: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--color-ink);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 5;
+  }
+
+  .partners__chip[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .partners__chip[data-tooltip]:hover::before {
+    opacity: 1;
+  }
+
+  .partners__chip:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--color-accent);
+  }
+
+  /* Loga se zobrazují VŽDY v původních barvách — žádné šedo-do-barvy při
+     hoveru. Jsou to reálná loga výrobců, ne dekorace. */
+  .partners__chip img {
+    max-width: 100%;
+    max-height: 3.5rem;
+    width: auto;
+  }
+
+  .partners__name {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-body);
+    color: var(--color-steel-on-paper);
+    letter-spacing: -0.01em;
+    text-align: center;
+    transition: color var(--transition-base);
+  }
+
+  .partners__chip:hover .partners__name {
+    color: var(--color-ink);
+  }
+
+  :global(.section--dark) .partners__chip {
+    background: var(--color-void-soft);
+    border-color: var(--color-steel-light);
+    box-shadow: none;
+  }
+  :global(.section--dark) .partners__name {
+    color: var(--color-steel);
+  }
+  :global(.section--dark) .partners__chip:hover .partners__name {
+    color: var(--color-paper);
+  }
+</style>

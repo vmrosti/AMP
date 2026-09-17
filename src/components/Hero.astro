@@ -1,0 +1,333 @@
+---
+import Button from "./Button.astro";
+import NetworkBackground from "./NetworkBackground.astro";
+interface Props {
+  headline: string;
+  subheadline?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  badge?: string;
+  size?: "large" | "small";
+  visual?: boolean;
+  photo?: string;
+  accentColor?: string;
+}
+const {
+  headline,
+  subheadline,
+  ctaLabel,
+  ctaHref = "/kontakt/",
+  secondaryLabel,
+  secondaryHref = "/realizace/",
+  badge,
+  size = "large",
+  visual = false,
+  photo,
+  accentColor,
+} = Astro.props;
+
+const styleVars = [
+  photo ? `--hero-photo: url('${photo}')` : "",
+  accentColor ? `--hero-accent: ${accentColor}` : "",
+].filter(Boolean).join("; ");
+---
+
+<section class:list={["hero", `hero--${size}`, photo && "hero--photo", accentColor && "hero--tinted"]} style={styleVars || undefined}>
+  <div class="blueprint-grid" aria-hidden="true"></div>
+
+  {
+    size === "large" && (
+      <div class="hero__traces">
+        <NetworkBackground density="low" />
+      </div>
+    )
+  }
+
+  <div class="hero__coords" aria-hidden="true">
+    <span>N 49.2°</span><span>E 16.6°</span><span>AMP / CNC / AUTOMATION</span>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__content">
+      <h1 class="hero__headline">{headline}</h1>
+      {subheadline && <p class="hero__subheadline">{subheadline}</p>}
+      {(ctaLabel || secondaryLabel) && (
+        <div class="hero__ctas">
+          {ctaLabel && <Button href={ctaHref} variant="primary">{ctaLabel}</Button>}
+          {secondaryLabel && <Button href={secondaryHref} variant="secondary">{secondaryLabel}</Button>}
+        </div>
+      )}
+    </div>
+
+    {
+      badge && (
+        <div class="hero__badge glass-panel">
+          <span>{badge}</span>
+        </div>
+      )
+    }
+  </div>
+
+  <div class="hero__scroll-hint" aria-hidden="true">
+    <span>Scroll</span>
+    <svg width="14" height="22" viewBox="0 0 14 22"><rect x="1" y="1" width="12" height="20" rx="6" stroke="currentColor" stroke-width="1.2" fill="none"/><circle class="hero__scroll-dot" cx="7" cy="7" r="1.6" fill="currentColor"/></svg>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: var(--space-7) var(--space-6);
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 65% 65% at 50% -15%, rgba(0, 211, 25, 0.12), transparent 55%),
+      linear-gradient(160deg, var(--color-paper) 0%, var(--color-paper-alt) 100%);
+  }
+
+  .hero--tinted {
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 80% at 15% 0%, color-mix(in srgb, var(--hero-accent) 18%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--color-paper) 0%, var(--color-paper-alt) 100%);
+  }
+
+  .hero--tinted::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--hero-accent), transparent);
+  }
+
+  .hero--tinted .hero__headline {
+    background: linear-gradient(90deg, var(--color-ink) 55%, var(--hero-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Fotka dílny — jen na velkém hero (homepage), ne na "small" variantě
+     použité na stránkách služeb/kontaktu/atd. (tam předtím omylem taky byla
+     tahle stejná fotka, což byl bug). */
+  .hero--large {
+    background:
+      linear-gradient(90deg, var(--color-paper) 0%, rgba(245, 244, 241, 0.75) 30%, rgba(245, 244, 241, 0.2) 55%, transparent 75%),
+      radial-gradient(ellipse 65% 65% at 50% -15%, rgba(0, 211, 25, 0.12), transparent 55%),
+      image-set(url("/images/hero-workshop.webp") type("image/webp"), url("/images/hero-workshop.jpg") type("image/jpeg")) right center / cover no-repeat,
+      var(--color-paper);
+  }
+
+  @media (max-width: 640px) {
+    .hero--large {
+      background:
+        linear-gradient(90deg, var(--color-paper) 0%, rgba(245, 244, 241, 0.75) 30%, rgba(245, 244, 241, 0.2) 55%, transparent 75%),
+        radial-gradient(ellipse 65% 65% at 50% -15%, rgba(0, 211, 25, 0.12), transparent 55%),
+        url("/images/hero-workshop-mobile.webp") right center / cover no-repeat,
+        var(--color-paper);
+    }
+  }
+
+  .hero--large {
+    padding-block: var(--space-9) var(--space-8);
+    min-height: min(46rem, 92vh);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Fotka blendovaná do tmavého zeleného gradientu — pro "small" hero
+     stránek služeb, aby fotka nepůsobila jako osamocený blok, ale jako
+     součást hero designu (viz zpětná vazba k designu). */
+  .hero--photo {
+    background:
+      linear-gradient(155deg, rgba(10, 11, 13, 0.94) 0%, rgba(15, 41, 19, 0.88) 55%, rgba(14, 122, 29, 0.55) 100%),
+      var(--hero-photo) center / cover no-repeat;
+  }
+
+  .hero--photo .hero__headline,
+  .hero--photo .hero__subheadline {
+    color: var(--color-paper);
+  }
+
+  .hero--photo .hero__subheadline {
+    color: var(--color-steel);
+  }
+
+  .hero--photo .btn--secondary {
+    color: var(--color-paper);
+    border-color: var(--color-steel-light);
+  }
+  .hero--photo .btn--secondary:hover {
+    border-color: var(--color-paper);
+    background: rgba(245, 244, 241, 0.08);
+  }
+
+  .hero__traces {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .hero__traces {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: min(38%, 30rem);
+      height: 100%;
+      pointer-events: none;
+      mask-image: linear-gradient(90deg, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, black 60%, transparent 100%);
+    }
+  }
+
+  .hero__coords {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--container-padding);
+    display: none;
+    gap: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--color-steel-on-paper);
+  }
+
+  @media (min-width: 1024px) {
+    .hero__coords {
+      display: flex;
+      right: var(--space-6);
+    }
+  }
+
+  .hero__inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-6);
+  }
+
+  .hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 44rem;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: hero-in 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__content {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+  }
+
+  @keyframes hero-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero--large .hero__headline {
+    font-size: var(--text-display);
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .hero--small .hero__headline {
+    font-size: var(--text-h1);
+    color: var(--color-ink);
+  }
+
+  .hero__subheadline {
+    margin-top: var(--space-4);
+    font-size: var(--text-body-lg);
+    color: var(--color-ink-soft);
+    max-width: 40ch;
+  }
+
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  /* Sekundární tlačítko je jinak jen obrys bez výplně — přes fotku na
+     pozadí hero by splývalo (nešlo přečíst). Tady dostane vlastní
+     neprůhledné pozadí, ať je čitelné bez ohledu na to, co je pod ním. */
+  :global(.hero--large .hero__ctas .btn--secondary) {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-color: rgba(20, 22, 26, 0.15);
+  }
+  :global(.hero--large .hero__ctas .btn--secondary:hover) {
+    background: var(--color-white);
+    border-color: var(--color-ink);
+  }
+
+  /* Kruhový odznak — obdoba "Návrh řešení zdarma" z reference */
+  .hero__badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 9rem;
+    height: 9rem;
+    border-radius: 50%;
+    text-align: center;
+  }
+
+  .hero__badge span {
+    font-family: var(--font-display);
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-small);
+    line-height: 1.25;
+    color: var(--color-accent-dark);
+    padding: var(--space-3);
+  }
+
+  .hero__scroll-hint {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-5);
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--color-steel-on-paper);
+  }
+
+  .hero--large .hero__scroll-hint {
+    display: flex;
+  }
+
+  .hero__scroll-dot {
+    animation: scroll-dot 2s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  @keyframes scroll-dot {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(7px); opacity: 0.3; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__scroll-dot { animation: none; }
+  }
+</style>

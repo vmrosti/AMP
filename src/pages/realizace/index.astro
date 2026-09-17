@@ -1,0 +1,110 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import Section from "../../components/Section.astro";
+import GalleryLightbox from "../../components/GalleryLightbox.astro";
+import CTA from "../../components/CTA.astro";
+import { getPublished } from "../../data/caseStudies.js";
+import { services } from "../../data/services.js";
+import { getBreadcrumbSchema } from "../../data/schema.js";
+
+const breadcrumbSchema = getBreadcrumbSchema(Astro.site, [
+  ["Domů", "/"],
+  ["Realizace", "/realizace/"],
+]);
+
+const publishedCaseStudies = getPublished();
+
+// Dokud nejsou publikované žádné reálné realizace s fotkami, galerie zobrazuje
+// jasně označené placeholdery kategorizované podle skutečné nabídky služeb —
+// ne vymyšlené projekty. Jakmile přibudou reálné fotky, nahradí se `image`.
+// Reprezentativní fotky práce AMP podle oboru — dokud nejsou publikované
+// konkrétní pojmenované realizace s vlastním příběhem, galerie ukazuje
+// aspoň reálný vizuál dané činnosti, ne prázdný placeholder.
+const serviceImages: Record<string, string> = {
+  "zakazkova-vyroba": "/images/services/zakazkova-vyroba.jpg",
+  automatizace: "/images/services/automatizace.jpg",
+  servis: "/images/services/servis.jpg",
+  repase: "/images/services/repase.jpg",
+  "3d-tisk": "/images/services/3d-tisk.jpg",
+};
+
+const galleryItems =
+  publishedCaseStudies.length > 0
+    ? publishedCaseStudies.flatMap((c) =>
+        (c.fotografie.length > 0 ? c.fotografie : [{ src: null, alt: c.title }]).map((f) => ({
+          title: c.title,
+          category: c.industry,
+          image: f.src,
+          alt: f.alt,
+        }))
+      )
+    : services.map((s) => ({
+        title: s.title,
+        category: `Služba ${s.number}`,
+        image: serviceImages[s.slug] ?? null,
+        alt: s.title,
+      }));
+
+// ImageObject schema jen pro skutečné fotky (ne pro null placeholdery) —
+// pomáhá Google Images pochopit, co je na obrázku, a přiřadit ho ke stránce.
+const imageSchemas = galleryItems
+  .filter((item) => item.image)
+  .map((item) => ({
+    "@context": "https://schema.org",
+    "@type": "ImageObject",
+    contentUrl: new URL(item.image as string, Astro.site).toString(),
+    description: item.alt || item.title,
+  }));
+---
+<BaseLayout
+  title="Realizace | AMP-stroje"
+  description="Přehled strojů, konstrukcí a automatizovaných pracovišť, které jsme navrhli, vyrobili nebo opravili."
+  schema={[breadcrumbSchema, ...imageSchemas]}
+>
+  <Hero headline="Co jsme postavili" size="small" />
+
+  <Section>
+    <GalleryLightbox items={galleryItems} />
+    {publishedCaseStudies.length === 0 && (
+      <p class="empty-note reveal">
+        Konkrétní pojmenované realizace s popisem zadání a výsledku zatím
+        připravujeme — fotky výše ukazují typ práce, kterou děláme. Mezitím
+        se podívejte na <a href="/sluzby/">naše služby</a> nebo nám
+        <a href="/kontakt/">rovnou popište váš projekt</a>.
+      </p>
+    )}
+  </Section>
+
+  {publishedCaseStudies.length > 0 && (
+    <Section variant="soft" eyebrow="Detail" title="Case studies">
+      <div class="grid grid--3">
+        {publishedCaseStudies.map((c) => (
+          <a href={`/realizace/${c.slug}/`} class="cs-link reveal">{c.title} →</a>
+        ))}
+      </div>
+    </Section>
+  )}
+
+  <CTA
+    title="Řešíte podobný problém?"
+    subtitle="Popište nám ho — podíváme se, jestli se dá vyřešit podobně jednoduše."
+    ctaLabel="Proberme váš projekt"
+  />
+</BaseLayout>
+
+<style>
+  .empty-note {
+    max-width: 40rem;
+    margin-top: var(--space-5);
+    color: var(--color-steel-on-paper);
+  }
+  .empty-note a {
+    color: var(--color-accent-bright);
+  }
+  .cs-link {
+    color: var(--color-paper);
+    text-decoration: none;
+    font-weight: var(--weight-medium);
+  }
+</style>

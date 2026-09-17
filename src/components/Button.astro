@@ -1,0 +1,20 @@
+---
+// Vizuální styl pro .btn/.btn--primary/.btn--secondary/.btn--ghost je v
+// global.css (globální utility třídy) — nutné, protože stejné třídy se
+// používají i mimo tuto komponentu (Header, AutomationCheck), kam by scoped
+// styl z téhle komponenty vůbec nedosáhl.
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary" | "ghost";
+  class?: string;
+}
+const { href, variant = "primary", class: className = "" } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={["btn", `btn--${variant}`, className]}
+  data-event={variant === "primary" ? "cta_click" : undefined}
+>
+  <slot />
+</a>

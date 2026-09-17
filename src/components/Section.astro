@@ -1,0 +1,37 @@
+---
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  variant?: "default" | "alt" | "dark" | "soft";
+  id?: string;
+  class?: string;
+  style?: string;
+}
+const { eyebrow, title, subtitle, variant = "default", id, class: className, style } = Astro.props;
+---
+
+<section
+  class:list={[
+    "section",
+    className,
+    variant === "alt" && "section--alt",
+    variant === "dark" && "section--dark",
+    variant === "soft" && "section--soft",
+  ]}
+  id={id}
+  style={style}
+>
+  <div class="container">
+    {
+      (eyebrow || title || subtitle) && (
+        <div class="section__head reveal">
+          {eyebrow && <span class="section__eyebrow">{eyebrow}</span>}
+          {title && <h2 class="section__title">{title}</h2>}
+          {subtitle && <p class="section__subtitle">{subtitle}</p>}
+        </div>
+      )
+    }
+    <slot />
+  </div>
+</section>

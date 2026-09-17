@@ -1,0 +1,372 @@
+---
+// Formulář posílá skutečný POST na /api/kontakt (viz src/pages/api/kontakt.js).
+// Server-side validace je autoritativní; klientská validace je jen UX vylepšení.
+// Floating-label pattern: input má `placeholder=" "` a label je JEHO
+// následující sourozenec, aby šlo použít čisté CSS (:placeholder-shown + ~).
+---
+
+<form class="contact-form" id="contact-form" novalidate action="/api/kontakt" method="post">
+  <div class="field">
+    <input type="text" id="jmeno" name="jmeno" placeholder=" " required autocomplete="name" />
+    <label for="jmeno">Jméno *</label>
+    <span class="field__error" data-error-for="jmeno" role="alert"></span>
+  </div>
+
+  <div class="field">
+    <input type="text" id="firma" name="firma" placeholder=" " autocomplete="organization" />
+    <label for="firma">Firma (nepovinné)</label>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <input type="email" id="email" name="email" placeholder=" " required autocomplete="email" />
+      <label for="email">E-mail *</label>
+      <span class="field__error" data-error-for="email" role="alert"></span>
+    </div>
+
+    <div class="field">
+      <input type="tel" id="telefon" name="telefon" placeholder=" " autocomplete="tel" />
+      <label for="telefon">Telefon (nepovinné)</label>
+    </div>
+  </div>
+
+  <div class="field">
+    <textarea id="zprava" name="zprava" placeholder=" " rows="5" required minlength="10"></textarea>
+    <label for="zprava">Popis problému *</label>
+    <span class="field__error" data-error-for="zprava" role="alert"></span>
+  </div>
+
+  <label class="checkbox-row">
+    <input type="checkbox" id="souhlas" name="souhlas" required />
+    <span class="checkbox-row__box" aria-hidden="true">
+      <svg viewBox="0 0 16 16" width="11" height="11"><path d="M2 8l4 4 8-8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <span class="checkbox-row__text">
+      Souhlasím se zpracováním osobních údajů za účelem vyřízení mé poptávky. Více v
+      <a href="/ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásadách zpracování osobních údajů</a>.
+    </span>
+  </label>
+  <span class="field__error" data-error-for="souhlas" role="alert"></span>
+
+  <!-- Honeypot proti spamu — skryté pole pro roboty, lidé ho nevidí ani nevyplní -->
+  <div class="contact-form__honeypot" aria-hidden="true">
+    <label for="predmet">Nevyplňujte toto pole</label>
+    <input type="text" id="predmet" name="predmet" tabindex="-1" autocomplete="off" />
+  </div>
+  <input type="hidden" name="renderedAt" id="renderedAt" value="" />
+
+  <button type="submit" class="submit-btn" id="contact-form-submit">
+    <span data-label>Odeslat poptávku</span>
+    <svg data-arrow width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h10M9 4l5 5-5 5" stroke="currentColor" stroke-width="1.6"/></svg>
+    <svg data-spinner class="submit-btn__spinner" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="30 14"/></svg>
+  </button>
+
+  <p class="contact-form__status" role="status" aria-live="polite"></p>
+</form>
+
+<style>
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 32rem;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 480px) {
+    .field-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* Floating label */
+  .field {
+    position: relative;
+  }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    font: inherit;
+    padding: 22px 16px 9px;
+    border: 1.5px solid var(--color-steel-light-on-paper);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    color: var(--color-ink);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 6rem;
+  }
+
+  .field label {
+    position: absolute;
+    left: 16px;
+    top: 17px;
+    font-size: var(--text-body);
+    color: var(--color-steel-on-paper);
+    pointer-events: none;
+    transform-origin: left top;
+    transition: transform var(--transition-fast), color var(--transition-fast), top var(--transition-fast);
+  }
+
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(14, 122, 29, 0.12);
+  }
+
+  .field input:focus ~ label,
+  .field input:not(:placeholder-shown) ~ label,
+  .field textarea:focus ~ label,
+  .field textarea:not(:placeholder-shown) ~ label {
+    top: 7px;
+    font-size: 11px;
+    color: var(--color-accent-dark);
+  }
+
+  .field input[aria-invalid="true"],
+  .field textarea[aria-invalid="true"] {
+    border-color: var(--color-accent-dark);
+  }
+
+  .field__error {
+    display: block;
+    font-size: var(--text-small);
+    color: var(--color-accent-dark);
+    min-height: 1.1em;
+    margin-top: var(--space-1);
+  }
+
+  /* Custom checkbox */
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    cursor: pointer;
+  }
+
+  .checkbox-row input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .checkbox-row__box {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    border: 1.5px solid var(--color-steel-light-on-paper);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    background: var(--color-white);
+    transition: background-color var(--transition-fast), border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .checkbox-row input:checked ~ .checkbox-row__box {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-white);
+  }
+
+  .checkbox-row input:focus-visible ~ .checkbox-row__box {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .checkbox-row__text {
+    font-size: var(--text-small);
+    color: var(--color-ink-soft);
+  }
+
+  .checkbox-row__text a {
+    color: var(--color-accent-dark);
+  }
+
+  .contact-form__honeypot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  /* Submit button — primary accent fill, arrow slides in on hover, spinner on submit */
+  .submit-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    align-self: flex-start;
+    padding: 14px 28px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+    color: var(--color-white);
+    font: inherit;
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    transition: background-color var(--transition-base), box-shadow var(--transition-base),
+      transform var(--transition-fast);
+  }
+
+  .submit-btn:hover {
+    background: var(--color-accent-dark);
+    box-shadow: var(--glow-accent);
+    transform: translateY(-1px);
+  }
+
+  .submit-btn svg[data-arrow] {
+    transition: transform var(--transition-fast);
+  }
+  .submit-btn:hover svg[data-arrow] {
+    transform: translateX(3px);
+  }
+
+  .submit-btn__spinner {
+    display: none;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .submit-btn[disabled] {
+    opacity: 0.75;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .submit-btn[disabled] svg[data-arrow] {
+    display: none;
+  }
+  .submit-btn[disabled] .submit-btn__spinner {
+    display: block;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .submit-btn__spinner {
+      animation: none;
+    }
+  }
+
+  .contact-form__status {
+    font-size: var(--text-small);
+    min-height: 1.2em;
+  }
+
+  .contact-form__status[data-state="success"] {
+    color: var(--color-success);
+  }
+
+  .contact-form__status[data-state="error"] {
+    color: var(--color-accent-dark);
+  }
+</style>
+
+<script>
+  const form = document.getElementById("contact-form") as HTMLFormElement | null;
+  const status = form?.querySelector<HTMLElement>(".contact-form__status");
+  const submitBtn = document.getElementById("contact-form-submit") as HTMLButtonElement | null;
+  const submitLabel = submitBtn?.querySelector("[data-label]");
+  const renderedAtField = document.getElementById("renderedAt") as HTMLInputElement | null;
+
+  if (renderedAtField) renderedAtField.value = String(Date.now());
+
+  // Předvyplnění zprávy z odkazu (např. z Automation Checku): /kontakt/?zprava=...
+  const params = new URLSearchParams(window.location.search);
+  const prefill = params.get("zprava");
+  const textarea = form?.querySelector<HTMLTextAreaElement>("#zprava");
+  if (prefill && textarea) textarea.value = prefill;
+
+  function setFieldError(name: string, message: string) {
+    const el = form?.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+    const input = form?.querySelector<HTMLElement>(`[name="${name}"]`);
+    if (el) el.textContent = message;
+    if (input) input.setAttribute("aria-invalid", message ? "true" : "false");
+  }
+
+  function clearErrors() {
+    form?.querySelectorAll<HTMLElement>(".field__error").forEach((el) => (el.textContent = ""));
+    form?.querySelectorAll<HTMLElement>("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const honeypot = form.querySelector<HTMLInputElement>("#predmet");
+    if (honeypot?.value) return; // tichý zásah proti botům
+
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitLabel) submitLabel.textContent = "Odesílám…";
+    if (status) {
+      status.dataset.state = "";
+      status.textContent = "";
+    }
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json().catch(() => ({ ok: false }));
+
+      if (response.ok && result.ok) {
+        if (status) {
+          status.dataset.state = "success";
+          status.textContent = "Děkujeme, poptávku jsme přijali. Ozveme se vám co nejdříve.";
+        }
+        window.trackEvent?.("contact_form_submit");
+        form.reset();
+      } else if (response.status === 422 && result.errors) {
+        for (const [field, message] of Object.entries(result.errors as Record<string, string>)) {
+          setFieldError(field, message);
+        }
+        if (status) {
+          status.dataset.state = "error";
+          status.textContent = "Zkontrolujte prosím vyznačená pole.";
+        }
+      } else {
+        if (status) {
+          status.dataset.state = "error";
+          status.textContent =
+            "Odeslání se nezdařilo. Zkuste to prosím znovu, nebo nám zatím napište přímo na e-mail.";
+        }
+      }
+    } catch {
+      if (status) {
+        status.dataset.state = "error";
+        status.textContent =
+          "Odeslání se nezdařilo (problém se spojením). Zkuste to prosím znovu, nebo nám napište přímo na e-mail.";
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitLabel) submitLabel.textContent = "Odeslat poptávku";
+    }
+  });
+</script>
