@@ -65,6 +65,7 @@ const { src, poster, caption } = Astro.props;
               source.src = src;
               v.appendChild(source);
               v.load();
+              v.play().catch(() => {});
             }
             io.unobserve(v);
           }
